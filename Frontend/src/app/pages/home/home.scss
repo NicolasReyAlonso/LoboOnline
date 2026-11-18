@@ -1,0 +1,96 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 520px;
+  padding-bottom: 48px;
+}
+
+.hero {
+  padding: 32px 0 8px;
+  text-align: center;
+
+  h1 {
+    font-size: clamp(2.2rem, 9vw, 3.2rem);
+    font-weight: 800;
+  }
+
+  p {
+    margin-top: 8px;
+  }
+}
+
+.moon {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8e1, #f2c66d 60%, #c99a3d);
+  box-shadow:
+    0 0 40px rgba(242, 198, 109, 0.55),
+    0 0 120px rgba(242, 198, 109, 0.25);
+}
+
+.back-to-room {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.85rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+}
+
+.join {
+  display: flex;
+  gap: 8px;
+}
+
+.code {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.roles-title {
+  margin-bottom: 12px;
+}
+
+.roles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+.role-icon {
+  flex: none;
+  font-size: 1.8rem;
+  line-height: 1;
+}

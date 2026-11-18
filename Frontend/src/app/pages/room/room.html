@@ -1,0 +1,39 @@
+@switch (view()) {
+  @case ('room') {
+    @if (game.state()?.status === 'lobby') {
+      <app-lobby />
+    } @else {
+      <app-game-board />
+    }
+  }
+  @case ('connecting') {
+    <main class="page center-page">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Volviendo a la sala {{ upperCode() }}…</p>
+    </main>
+  }
+  @case ('join') {
+    <main class="page center-page">
+      <form class="card stack invite" (submit)="$event.preventDefault(); join()">
+        <p class="eyebrow">Te han invitado a la sala</p>
+        <h1 class="code">{{ upperCode() }}</h1>
+        <label class="field">
+          Tu nombre
+          <input
+            #nameInput
+            class="input"
+            maxlength="20"
+            autocomplete="nickname"
+            placeholder="¿Cómo te llaman en el pueblo?"
+            [value]="name()"
+            (input)="name.set(nameInput.value)"
+          />
+        </label>
+        <button class="btn btn-primary btn-lg" type="submit" [disabled]="!name().trim() || busy()">
+          Entrar en la sala
+        </button>
+        <a routerLink="/" class="small">Volver al inicio</a>
+      </form>
+    </main>
+  }
+}
