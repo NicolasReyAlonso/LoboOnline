@@ -7,31 +7,54 @@
   </div>
 
   <div class="chips">
-    @for (chip of previewChips(); track chip.role) {
+    @for (chip of chips(); track chip.key) {
       <span class="chip">{{ chip.label }}</span>
     }
   </div>
-  @if (preview()?.error; as error) {
+  @if (error(); as error) {
     <p class="error-text">{{ error }}</p>
   }
 
   @if (editable()) {
+    <div class="wolves">
+      <div class="stepper">
+        <span>{{ icon.werewolf }} Máximo de lobos</span>
+        <div class="row">
+          <button
+            class="icon-btn"
+            aria-label="Un lobo menos"
+            [disabled]="settings().maxWolves <= 1"
+            (click)="setMaxWolves(settings().maxWolves - 1)"
+          >
+            −
+          </button>
+          <strong>{{ settings().maxWolves }}</strong>
+          <button
+            class="icon-btn"
+            aria-label="Un lobo más"
+            [disabled]="settings().maxWolves >= maxWolvesLimit"
+            (click)="setMaxWolves(settings().maxWolves + 1)"
+          >
+            +
+          </button>
+        </div>
+      </div>
+      <p class="muted small">
+        En cada partida se sortea cuántos lobos hay, entre 1 y {{ settings().maxWolves }}. Nadie sabrá cuántos son.
+        @if (wolvesNote(); as note) {
+          <strong>{{ note }}</strong>
+        }
+      </p>
+    </div>
+
     <label class="check">
       <input #autoBox type="checkbox" [checked]="auto()" (change)="setAuto(autoBox.checked)" />
-      Reparto automático según el número de jugadores
+      Personajes con poderes automáticos según el número de jugadores
     </label>
 
     @if (!auto()) {
       <div class="custom">
-        <div class="stepper">
-          <span>{{ icon.werewolf }} Lobos</span>
-          <div class="row">
-            <button class="icon-btn" aria-label="Un lobo menos" (click)="setWolves((counts().werewolf ?? 1) - 1)">−</button>
-            <strong>{{ counts().werewolf ?? 0 }}</strong>
-            <button class="icon-btn" aria-label="Un lobo más" (click)="setWolves((counts().werewolf ?? 1) + 1)">+</button>
-          </div>
-        </div>
-        @for (role of uniqueRoles; track role) {
+        @for (role of powers; track role) {
           <label class="check">
             <input #roleBox type="checkbox" [checked]="!!counts()[role]" (change)="toggleRole(role, roleBox.checked)" />
             {{ icon[role] }} {{ roleName(role) }}

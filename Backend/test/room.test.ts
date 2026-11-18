@@ -56,7 +56,7 @@ describe('Room', () => {
   it('las fases avanzan solas cuando vence el tiempo', () => {
     const { room } = makeRoom();
     const players = ['Ana', 'Bea', 'Carla', 'Dani'].map((n, i) => room.join(n, `s${i}`));
-    room.updateSettings(players[0]!.id, { roles: { werewolf: 1 } });
+    room.updateSettings(players[0]!.id, { maxWolves: 1, roles: {} });
     room.start(players[0]!.id);
     const game = room.currentGame!;
     expect(game.phase).toBe('night_wolves');
@@ -77,7 +77,7 @@ describe('Room', () => {
   it('el chat de muertos solo lo reciben los muertos', () => {
     const { room, sent } = makeRoom();
     const players = ['Ana', 'Bea', 'Carla', 'Dani'].map((n, i) => room.join(n, `s${i}`));
-    room.updateSettings(players[0]!.id, { roles: { werewolf: 1 } });
+    room.updateSettings(players[0]!.id, { maxWolves: 1, roles: {} });
     room.start(players[0]!.id);
     const game = room.currentGame!;
     const wolf = players.find((p) => game.playerInfo(p.id)?.role === 'werewolf')!;

@@ -2,8 +2,8 @@
   <section>
     <h2>En esta partida</h2>
     <div class="chips">
-      @for (c of composition(); track c) {
-        <span class="chip">{{ c }}</span>
+      @for (c of composition(); track c.key) {
+        <span class="chip">{{ c.label }}</span>
       }
     </div>
   </section>

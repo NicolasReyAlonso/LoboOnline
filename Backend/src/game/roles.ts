@@ -1,8 +1,9 @@
 import { GameError } from './errors.js';
-import { ROLES, SPECIAL_ROLES, type Role, type RoleCounts, type Team } from './types.js';
+import { POWER_ROLES, ROLES, type Composition, type Role, type RoleCounts, type Team } from './types.js';
 
 export const MIN_PLAYERS = 4;
 export const MAX_PLAYERS = 20;
+export const MAX_WOLVES = 6;
 
 export interface RoleInfo {
   name: string;
@@ -22,7 +23,7 @@ export const ROLE_INFO: Record<Role, RoleInfo> = {
   werewolf: {
     name: 'Lobo',
     team: 'wolves',
-    max: 6,
+    max: MAX_WOLVES,
     description: 'Cada noche, junto a los demás lobos, elige a quién devorar. De día se hace pasar por un aldeano más.',
   },
   seer: {
@@ -64,12 +65,9 @@ export function isWolf(role: Role): boolean {
   return ROLE_INFO[role].team === 'wolves';
 }
 
-/** Reparto recomendado según el número de jugadores. */
-export function defaultRoleCounts(players: number): RoleCounts {
-  const counts: RoleCounts = {
-    werewolf: players <= 5 ? 1 : players <= 11 ? 2 : players <= 17 ? 3 : 4,
-    seer: 1,
-  };
+/** Personajes con poderes recomendados según el número de jugadores. */
+export function defaultPowers(players: number): RoleCounts {
+  const counts: RoleCounts = { seer: 1 };
   if (players >= 6) counts.witch = 1;
   if (players >= 7) counts.hunter = 1;
   if (players >= 8) counts.cupid = 1;
@@ -79,7 +77,7 @@ export function defaultRoleCounts(players: number): RoleCounts {
 
 /** Validación que no depende del número de jugadores (se puede hacer en el lobby). */
 export function checkRoleCounts(counts: RoleCounts): void {
-  for (const role of SPECIAL_ROLES) {
+  for (const role of POWER_ROLES) {
     const n = counts[role] ?? 0;
     if (!Number.isInteger(n) || n < 0) {
       throw new GameError('invalid_roles', `Cantidad no válida para ${ROLE_INFO[role].name}.`);
@@ -88,35 +86,50 @@ export function checkRoleCounts(counts: RoleCounts): void {
       throw new GameError('invalid_roles', `Como mucho puede haber ${ROLE_INFO[role].max} de ${ROLE_INFO[role].name}.`);
     }
   }
-  if ((counts.werewolf ?? 0) < 1) {
-    throw new GameError('invalid_roles', 'Tiene que haber al menos un lobo.');
+}
+
+export function checkMaxWolves(maxWolves: number): void {
+  if (!Number.isInteger(maxWolves) || maxWolves < 1 || maxWolves > MAX_WOLVES) {
+    throw new GameError('invalid_settings', `El máximo de lobos tiene que estar entre 1 y ${MAX_WOLVES}.`);
   }
 }
 
-/** Devuelve la lista de cartas (sin barajar) para `players` jugadores. */
-export function buildRoleList(players: number, custom: RoleCounts | null): Role[] {
+/**
+ * Qué se puede repartir con `players` jugadores. Lanza `GameError` si no es
+ * posible. El máximo de lobos se recorta para que:
+ * - haya siempre menos lobos que no-lobos, y
+ * - quepan todos los personajes con poderes.
+ */
+export function planComposition(players: number, roles: RoleCounts | null, maxWolves: number): Composition {
   if (players < MIN_PLAYERS) {
     throw new GameError('not_enough_players', `Hacen falta al menos ${MIN_PLAYERS} jugadores.`);
   }
   if (players > MAX_PLAYERS) {
     throw new GameError('too_many_players', `Como mucho pueden jugar ${MAX_PLAYERS} personas.`);
   }
-  const counts = custom ?? defaultRoleCounts(players);
-  checkRoleCounts(counts);
+  checkMaxWolves(maxWolves);
+  const powers = roles ?? defaultPowers(players);
+  checkRoleCounts(powers);
 
-  const list: Role[] = [];
-  for (const role of SPECIAL_ROLES) {
-    for (let i = 0; i < (counts[role] ?? 0); i++) list.push(role);
-  }
-  if (list.length > players) {
+  const powerCount = POWER_ROLES.reduce((sum, r) => sum + (powers[r] ?? 0), 0);
+  if (powerCount + 1 > players) {
     throw new GameError(
       'invalid_roles',
-      `Hay ${list.length} cartas especiales pero solo ${players} jugadores.`,
+      `Hay ${powerCount} personajes con poderes y solo ${players} jugadores: tiene que quedar sitio para al menos un lobo.`,
     );
   }
-  const wolves = counts.werewolf ?? 0;
-  if (wolves * 2 >= players) {
-    throw new GameError('invalid_roles', 'Tiene que haber menos lobos que aldeanos.');
+  const max = Math.min(maxWolves, Math.floor((players - 1) / 2), players - powerCount);
+  return { powers: { ...powers }, wolves: { min: 1, max } };
+}
+
+/** Sortea el número de lobos dentro de lo permitido y devuelve las cartas (sin barajar). */
+export function dealRoles(players: number, composition: Composition, rng: () => number = Math.random): Role[] {
+  const { min, max } = composition.wolves;
+  const wolves = min + Math.min(max - min, Math.floor(rng() * (max - min + 1)));
+  const list: Role[] = [];
+  for (let i = 0; i < wolves; i++) list.push('werewolf');
+  for (const role of POWER_ROLES) {
+    for (let i = 0; i < (composition.powers[role] ?? 0); i++) list.push(role);
   }
   while (list.length < players) list.push('villager');
   return list;

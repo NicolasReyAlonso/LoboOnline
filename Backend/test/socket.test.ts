@@ -136,16 +136,17 @@ describe('servidor', () => {
       ok: false,
       code: 'not_host',
     });
-    ok(await host.emitWithAck('room:settings', { durations: { discussion: 60 }, roles: { werewolf: 1 } }));
+    ok(await host.emitWithAck('room:settings', { durations: { discussion: 60 }, maxWolves: 3, roles: { seer: 1 } }));
     const state = await waitForState(guests[1]!, (s) => s.settings.durations.discussion === 60);
-    expect(state.settings.roles).toEqual({ werewolf: 1 });
+    expect(state.settings.maxWolves).toBe(3);
+    expect(state.settings.roles).toEqual({ seer: 1 });
     expect(state.settings.durations.vote).toBe(60); // el resto se mantiene
     expect(await host.emitWithAck('room:settings', { durations: { vote: 99999 } })).toMatchObject({ ok: false });
   });
 
   it('juega una noche completa por sockets', async () => {
     const { host, all, sessions } = await lobbyWith(4);
-    ok(await host.emitWithAck('room:settings', { roles: { werewolf: 1, seer: 1 } }));
+    ok(await host.emitWithAck('room:settings', { maxWolves: 1, roles: { seer: 1 } }));
     ok(await host.emitWithAck('game:start'));
 
     const states = await Promise.all(all.map((c) => waitForState(c, (s) => s.status === 'playing')));
@@ -188,7 +189,7 @@ describe('servidor', () => {
     await new Promise((r) => setTimeout(r, 50));
     expect(general.map((m) => m.text)).toEqual(['hola!']);
 
-    ok(await host.emitWithAck('room:settings', { roles: { werewolf: 1 } }));
+    ok(await host.emitWithAck('room:settings', { maxWolves: 1, roles: {} }));
     ok(await host.emitWithAck('game:start'));
     const states = await Promise.all(all.map((c) => waitForState(c, (s) => s.status === 'playing')));
     const wolfIndex = states.findIndex((s) => s.game!.me!.role === 'werewolf');

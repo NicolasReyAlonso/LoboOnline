@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { createGame } from '../game/createGame.js';
 import { GameError } from '../game/errors.js';
 import type { Game } from '../game/Game.js';
-import { buildRoleList, countRoles, isWolf, MAX_PLAYERS, MIN_PLAYERS } from '../game/roles.js';
+import { isWolf, MAX_PLAYERS, MIN_PLAYERS, planComposition } from '../game/roles.js';
 import { DEFAULT_SETTINGS, validateSettings } from '../game/settings.js';
 import { isNightPhase, type GameAction, type GameSettings } from '../game/types.js';
 import type {
@@ -171,6 +171,7 @@ export class Room {
       if (value !== undefined) durations[key as keyof typeof durations] = value;
     }
     const next: GameSettings = {
+      maxWolves: patch.maxWolves ?? this.settings.maxWolves,
       roles: patch.roles === undefined ? this.settings.roles : patch.roles,
       revealRoleOnDeath: patch.revealRoleOnDeath ?? this.settings.revealRoleOnDeath,
       deadSeeEverything: patch.deadSeeEverything ?? this.settings.deadSeeEverything,
@@ -320,10 +321,11 @@ export class Room {
   // -------------------------------------------------------------------------
 
   private rolePreview(): NonNullable<RoomState['rolePreview']> {
+    const { roles, maxWolves } = this.settings;
     try {
-      return { roles: countRoles(buildRoleList(this.players.size, this.settings.roles)), error: null };
+      return { composition: planComposition(this.players.size, roles, maxWolves), error: null };
     } catch (err) {
-      return { roles: null, error: err instanceof GameError ? err.message : 'Reparto no válido.' };
+      return { composition: null, error: err instanceof GameError ? err.message : 'Reparto no válido.' };
     }
   }
 

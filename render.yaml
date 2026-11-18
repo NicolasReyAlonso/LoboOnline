@@ -1,0 +1,17 @@
+# Despliegue del backend en Render (https://render.com) con el plan gratuito.
+# En Render: New → Blueprint → elige este repositorio. Render lee este fichero.
+services:
+  - type: web
+    name: lobo-online-backend
+    runtime: node
+    plan: free
+    rootDir: Backend
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: '24'
+      # Webs que pueden conectarse al servidor (separadas por comas).
+      - key: CORS_ORIGIN
+        value: https://nicolasreyalonso.github.io

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GameError } from '../game/errors.js';
+import { MAX_WOLVES } from '../game/roles.js';
 
 /** Validación de todo lo que llega de los clientes (nunca nos fiamos del cliente). */
 
@@ -39,9 +40,9 @@ const count = (max: number) => z.number().int().min(0).max(max);
 const seconds = z.number().int().positive();
 
 export const settingsSchema = z.strictObject({
+  maxWolves: z.number().int().min(1).max(MAX_WOLVES).optional(),
   roles: z
     .strictObject({
-      werewolf: count(6).optional(),
       seer: count(1).optional(),
       witch: count(1).optional(),
       hunter: count(1).optional(),

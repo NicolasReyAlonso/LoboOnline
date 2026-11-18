@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { GameService } from '../../core/game.service';
 import { describePrivate, describePublic } from '../../core/log';
-import { ROLE_ICON, ROLE_ORDER, roleName } from '../../core/roles';
+import { compositionChips } from '../../core/roles';
 
-/** Composición de la partida, tus secretos y la crónica (lo más reciente primero). */
+/** Reparto, tus secretos y la crónica (lo más reciente primero). */
 @Component({
   selector: 'app-game-log',
   templateUrl: './game-log.html',
@@ -15,12 +15,7 @@ export class GameLog {
   private readonly view = computed(() => this.game.game()!);
   private readonly nameOf = (id: string) => this.game.nameOf(id);
 
-  protected readonly composition = computed(() => {
-    const counts = this.view().roleCounts;
-    return ROLE_ORDER.filter((r) => counts[r] > 0).map(
-      (r) => `${ROLE_ICON[r]} ${roleName(r)}${counts[r] > 1 ? ` ×${counts[r]}` : ''}`,
-    );
-  });
+  protected readonly composition = computed(() => compositionChips(this.view().composition));
 
   protected readonly secrets = computed(() =>
     this.view()

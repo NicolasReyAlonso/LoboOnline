@@ -1,0 +1,76 @@
+# Publica el frontend en GitHub Pages cada vez que se sube algo a main.
+#
+# Antes de la primera vez:
+#  1. Settings → Pages → Source: "GitHub Actions".
+#  2. Settings → Secrets and variables → Actions → Variables → BACKEND_URL
+#     con la URL del backend (p. ej. https://lobo-online-backend.onrender.com).
+name: Publicar web en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Frontend/**'
+      - 'Backend/src/**' # el frontend importa los tipos del backend
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Tests
+        run: npx ng test --watch=false
+
+      - name: URL del backend
+        env:
+          BACKEND_URL: ${{ vars.BACKEND_URL }}
+        run: |
+          if [ -z "$BACKEND_URL" ]; then
+            echo "::warning::Falta la variable BACKEND_URL: la web se publica, pero no podrá conectar con el servidor."
+          fi
+          node -e "require('fs').writeFileSync('src/environments/environment.ts',
+            'export const environment = { serverUrl: ' + JSON.stringify(process.env.BACKEND_URL || '') + ' };\n')"
+
+      - name: Build
+        # La web se sirve en https://<usuario>.github.io/<repositorio>/
+        run: npx ng build --base-href "/${{ github.event.repository.name }}/"
+
+      - name: 404.html para que funcionen los enlaces directos (/sala/CODIGO)
+        run: cp dist/Frontend/browser/index.html dist/Frontend/browser/404.html
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: Frontend/dist/Frontend/browser
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

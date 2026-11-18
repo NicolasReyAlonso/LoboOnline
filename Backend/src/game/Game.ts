@@ -1,7 +1,9 @@
 import { GameError } from './errors.js';
-import { countRoles, isWolf } from './roles.js';
+import { isWolf } from './roles.js';
 import {
   NIGHT_PHASES,
+  POWER_ROLES,
+  type Composition,
   type DeathCause,
   type GameAction,
   type GameSettings,
@@ -29,6 +31,11 @@ export interface GameOptions {
   rng?: () => number;
   /** Reloj en ms. Se inyecta para los tests. */
   now?: () => number;
+  /**
+   * Lo que se anuncia del reparto. Lo calcula `createGame`; si no se pasa
+   * (en los tests), se usa el reparto exacto.
+   */
+  composition?: Composition;
 }
 
 interface GamePlayer extends GamePlayerInit {
@@ -85,6 +92,7 @@ function leaders<K>(tally: Map<K, number>): K[] {
  */
 export class Game {
   readonly settings: GameSettings;
+  private readonly composition: Composition;
   private readonly players: GamePlayer[];
   private readonly byId: Map<string, GamePlayer>;
   private readonly rng: () => number;
@@ -124,6 +132,17 @@ export class Game {
     this.byId = new Map(this.players.map((p) => [p.id, p]));
     this.rng = options.rng ?? Math.random;
     this.now = options.now ?? Date.now;
+    this.composition = structuredClone(options.composition ?? this.exactComposition());
+  }
+
+  private exactComposition(): Composition {
+    const wolves = this.players.filter((p) => isWolf(p.role)).length;
+    const powers: Composition['powers'] = {};
+    for (const role of POWER_ROLES) {
+      const n = this.players.filter((p) => p.role === role).length;
+      if (n > 0) powers[role] = n;
+    }
+    return { powers, wolves: { min: wolves, max: wolves } };
   }
 
   // -------------------------------------------------------------------------
@@ -260,7 +279,7 @@ export class Game {
       endsAt: this.endsAt,
       night: this._night,
       day: this._day,
-      roleCounts: countRoles(this.players.map((p) => p.role)),
+      composition: structuredClone(this.composition),
       me: me ? { id: me.id, role: me.role, alive: me.alive, loverId: me.loverId } : null,
       players,
       action: this.pendingActionFor(me),

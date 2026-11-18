@@ -33,7 +33,8 @@ export class Lobby {
 
   protected async invite(): Promise<void> {
     const code = this.state().code;
-    const url = `${location.origin}/sala/${code}`;
+    // Relativo a <base href>: en GitHub Pages la web vive en /LoboOnline/, no en la raíz.
+    const url = new URL(`sala/${code}`, document.baseURI).href;
     const touch = matchMedia('(pointer: coarse)').matches;
     if (touch && navigator.share) {
       try {

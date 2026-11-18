@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { defaultRoleCounts, MIN_PLAYERS } from '@lobo/game/roles';
+import { defaultPowers, MAX_WOLVES, MIN_PLAYERS } from '@lobo/game/roles';
 import { DURATION_LIMITS } from '@lobo/game/settings';
-import type { Durations, GameSettings, RoleCounts, SpecialRole } from '@lobo/game/types';
+import { POWER_ROLES, type Durations, type GameSettings, type PowerRole, type RoleCounts } from '@lobo/game/types';
 import { GameService } from '../../core/game.service';
-import { ROLE_ICON, ROLE_ORDER, roleName } from '../../core/roles';
+import { compositionChips, ROLE_ICON, roleName } from '../../core/roles';
 
 type Option = 'revealRoleOnDeath' | 'deadSeeEverything';
 
@@ -18,26 +18,31 @@ export class SettingsPanel {
   protected readonly game = inject(GameService);
 
   protected readonly settings = computed(() => this.game.state()!.settings);
-  protected readonly preview = computed(() => this.game.state()!.rolePreview);
+  protected readonly playerCount = computed(() => this.game.state()!.players.length);
   protected readonly editable = this.game.isHost;
   protected readonly auto = computed(() => this.settings().roles === null);
 
-  /** Reparto actual (el personalizado, o el automático para el número de jugadores). */
-  protected readonly counts = computed<RoleCounts>(() => {
-    const players = Math.max(MIN_PLAYERS, this.game.state()!.players.length);
-    return this.settings().roles ?? defaultRoleCounts(players);
+  private readonly preview = computed(() => this.game.state()!.rolePreview);
+  protected readonly error = computed(() => this.preview()?.error ?? null);
+  protected readonly chips = computed(() => {
+    const composition = this.preview()?.composition;
+    return composition ? compositionChips(composition) : [];
   });
 
-  protected readonly previewChips = computed(() => {
-    const roles = this.preview()?.roles;
-    if (!roles) return [];
-    return ROLE_ORDER.filter((r) => roles[r] > 0).map((r) => ({
-      role: r,
-      label: `${ROLE_ICON[r]} ${roleName(r)}${roles[r] > 1 ? ` ×${roles[r]}` : ''}`,
-    }));
+  /** Si con los jugadores actuales caben menos lobos de los elegidos, se avisa. */
+  protected readonly wolvesNote = computed(() => {
+    const max = this.preview()?.composition?.wolves.max;
+    if (max === undefined || max >= this.settings().maxWolves) return null;
+    return `Con ${this.playerCount()} jugadores caben como mucho ${max}.`;
   });
 
-  protected readonly uniqueRoles: readonly SpecialRole[] = ['seer', 'witch', 'hunter', 'cupid', 'protector'];
+  /** Personajes con poderes actuales (los elegidos, o los automáticos para el número de jugadores). */
+  protected readonly counts = computed<RoleCounts>(
+    () => this.settings().roles ?? defaultPowers(Math.max(MIN_PLAYERS, this.playerCount())),
+  );
+
+  protected readonly powers = POWER_ROLES;
+  protected readonly maxWolvesLimit = MAX_WOLVES;
   protected readonly icon = ROLE_ICON;
   protected readonly roleName = roleName;
 
@@ -54,16 +59,16 @@ export class SettingsPanel {
     { key: 'deadSeeEverything', label: 'Los muertos lo ven todo' },
   ];
 
+  protected setMaxWolves(n: number): void {
+    if (n < 1 || n > MAX_WOLVES) return;
+    void this.game.updateSettings({ maxWolves: n });
+  }
+
   protected setAuto(auto: boolean): void {
     void this.game.updateSettings({ roles: auto ? null : { ...this.counts() } });
   }
 
-  protected setWolves(n: number): void {
-    if (n < 1 || n > 6) return;
-    void this.game.updateSettings({ roles: { ...this.counts(), werewolf: n } });
-  }
-
-  protected toggleRole(role: SpecialRole, on: boolean): void {
+  protected toggleRole(role: PowerRole, on: boolean): void {
     void this.game.updateSettings({ roles: { ...this.counts(), [role]: on ? 1 : 0 } });
   }
 

@@ -71,7 +71,13 @@ src/app/
 
 ## Producción
 
-`npm run build` genera una web estática en `dist/Frontend/browser`, que se puede servir desde cualquier hosting
-estático. Si el backend está en otro dominio, pon su URL en
-[`src/environments/environment.ts`](src/environments/environment.ts) y añade el dominio de la web a `CORS_ORIGIN` en
-el backend.
+La web se publica sola en GitHub Pages con cada push a `main` (ver el README principal y
+[`.github/workflows/pages.yml`](../.github/workflows/pages.yml)). El workflow:
+
+- compila con `--base-href /LoboOnline/`, porque Pages sirve la web en esa subcarpeta;
+- copia `index.html` como `404.html`, para que los enlaces de invitación (`/LoboOnline/sala/CODIGO`) no den 404;
+- escribe la URL del backend (variable `BACKEND_URL` del repositorio) en
+  [`src/environments/environment.ts`](src/environments/environment.ts).
+
+Para publicarla en otro sitio: `npm run build` genera una web estática en `dist/Frontend/browser`. Pon la URL del
+backend en `environment.ts` y añade el dominio de la web a `CORS_ORIGIN` en el backend.

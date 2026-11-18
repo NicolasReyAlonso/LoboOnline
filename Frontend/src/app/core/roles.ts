@@ -1,5 +1,5 @@
 import { ROLE_INFO } from '@lobo/game/roles';
-import type { Role, WinningSide } from '@lobo/game/types';
+import { POWER_ROLES, type Composition, type Role, type WinningSide } from '@lobo/game/types';
 
 /** Nombres y descripciones vienen del backend, para que no se desincronicen. */
 export const ROLE_ICON: Record<Role, string> = {
@@ -25,6 +25,20 @@ export function roleDescription(role: Role): string {
 
 export function isWolfRole(role: Role): boolean {
   return ROLE_INFO[role].team === 'wolves';
+}
+
+/** Etiquetas del reparto público: "Entre 1 y 3 lobos", los personajes con poderes y "Aldeanos (el resto)". */
+export function compositionChips(c: Composition): { key: string; label: string }[] {
+  const { min, max } = c.wolves;
+  const wolves = min === max ? `${max} ${max === 1 ? 'lobo' : 'lobos'}` : `Entre ${min} y ${max} lobos`;
+  return [
+    { key: 'werewolf', label: `${ROLE_ICON.werewolf} ${wolves}` },
+    ...POWER_ROLES.filter((r) => (c.powers[r] ?? 0) > 0).map((r) => ({
+      key: r,
+      label: `${ROLE_ICON[r]} ${roleName(r)}`,
+    })),
+    { key: 'villager', label: `${ROLE_ICON.villager} Aldeanos (el resto)` },
+  ];
 }
 
 export const SIDE_INFO: Record<WinningSide, { icon: string; label: string }> = {

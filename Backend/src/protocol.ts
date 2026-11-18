@@ -7,7 +7,7 @@
  *   import { io, type Socket } from 'socket.io-client';
  *   const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(URL);
  */
-import type { Durations, GameAction, GameSettings, GameView, Role, RoleCounts } from './game/types.js';
+import type { Composition, Durations, GameAction, GameSettings, GameView, RoleCounts } from './game/types.js';
 
 export type * from './game/types.js';
 
@@ -37,8 +37,8 @@ export interface RoomState {
   players: RoomPlayerView[];
   settings: GameSettings;
   limits: { minPlayers: number; maxPlayers: number };
-  /** Reparto que se usaría si la partida empezase ahora (solo fuera de partida). */
-  rolePreview: { roles: Record<Role, number> | null; error: string | null } | null;
+  /** Lo que se repartiría si la partida empezase ahora (solo fuera de partida). */
+  rolePreview: { composition: Composition | null; error: string | null } | null;
   /** `null` mientras se está en el lobby. */
   game: GameView | null;
   /**
@@ -68,6 +68,7 @@ export interface Session {
 }
 
 export interface SettingsPatch {
+  maxWolves?: number;
   roles?: RoleCounts | null;
   revealRoleOnDeath?: boolean;
   deadSeeEverything?: boolean;

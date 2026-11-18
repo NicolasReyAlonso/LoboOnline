@@ -49,14 +49,21 @@ mirando los mensajes de red.
 
 **Roles:** Aldeano, Lobo, Vidente, Bruja, Cazador, Cupido y Protector.
 
-**Reparto automático** (el anfitrión puede personalizarlo; los aldeanos rellenan el resto):
+**Lobos secretos:** el anfitrión elige el **máximo** de lobos (`maxWolves`, de 1 a 6, por defecto 2). Al empezar
+cada partida se sortea cuántos hay, entre 1 y ese máximo. El máximo se recorta solo si no cabe: siempre tiene que
+haber menos lobos que no-lobos, y sitio para los personajes con poderes. Todo el mundo ve "entre 1 y N lobos", pero
+nunca el número exacto. Por eso tampoco se publica cuántos aldeanos hay, porque de ahí se deduciría.
 
-| Jugadores | Lobos | Además                                                |
-| --------- | ----- | ----------------------------------------------------- |
-| 4–5       | 1     | Vidente                                               |
-| 6–11      | 2     | + Bruja (6+), Cazador (7+), Cupido (8+), Protector (10+) |
-| 12–17     | 3     | todos                                                 |
-| 18–20     | 4     | todos                                                 |
+**Personajes con poderes:** el anfitrión los elige, o se ponen solos según el número de jugadores. Los aldeanos
+rellenan el resto.
+
+| Jugadores | Personajes con poderes automáticos |
+| --------- | ---------------------------------- |
+| 4–5       | Vidente                            |
+| 6         | + Bruja                            |
+| 7         | + Cazador                          |
+| 8–9       | + Cupido                           |
+| 10–20     | + Protector                        |
 
 **Una noche**, en este orden. Se saltan los roles que no están en la partida:
 
@@ -139,11 +146,25 @@ Con socket.io-client ≥ 4.6 se puede usar `await socket.emitWithAck(evento, pay
   status: 'lobby' | 'playing' | 'ended',
   hostId, youId,
   players: [{ id, name, connected, isHost }],
-  settings: { roles, revealRoleOnDeath, deadSeeEverything, durations: {...} },
+  settings: { maxWolves, roles, revealRoleOnDeath, deadSeeEverything, durations: {...} },
   limits: { minPlayers: 4, maxPlayers: 20 },
-  rolePreview: { roles: { werewolf: 2, seer: 1, ... } | null, error: string | null } | null,
+  rolePreview: { composition: Composition | null, error: string | null } | null,
   game: GameView | null,
   serverTime: 1763484000000   // hora del servidor, para corregir el desfase del reloj del cliente
+}
+```
+
+### `SettingsPatch` (`room:settings`, solo el anfitrión y fuera de partida)
+
+Envía solo lo que cambie:
+
+```ts
+{
+  maxWolves?: 1..6,
+  roles?: { seer?: 0|1, witch?: 0|1, hunter?: 0|1, cupid?: 0|1, protector?: 0|1 } | null,  // null = automático
+  revealRoleOnDeath?: boolean,
+  deadSeeEverything?: boolean,
+  durations?: { discussion?, vote?, wolves?, nightAction?, announcement?, hunter?, phantomMin?, phantomMax? }  // segundos
 }
 ```
 
@@ -155,7 +176,10 @@ Con socket.io-client ≥ 4.6 se puede usar `await socket.emitWithAck(evento, pay
   phaseId: 7,                     // cambia en cada fase
   endsAt: 1763484000000,          // timestamp para la cuenta atrás
   night: 2, day: 1,
-  roleCounts: { werewolf: 2, seer: 1, villager: 5, ... },   // composición (pública)
+  composition: {                  // lo que todos saben del reparto
+    powers: { seer: 1, witch: 1 },  // personajes con poderes
+    wolves: { min: 1, max: 3 }      // el número exacto es secreto
+  },
   me: { id, role: 'seer', alive: true, loverId: null },
   players: [{ id, name, alive, role: 'werewolf' | null, lover: true | false | null }],
   action: { type: 'see', targets: ['id1', 'id2'] } | null,  // QUÉ PUEDES HACER AHORA

@@ -12,12 +12,22 @@
 export const ROLES = ['villager', 'werewolf', 'seer', 'witch', 'hunter', 'cupid', 'protector'] as const;
 export type Role = (typeof ROLES)[number];
 
-/** Roles que se configuran explícitamente (los aldeanos rellenan el resto). */
-export type SpecialRole = Exclude<Role, 'villager'>;
-export const SPECIAL_ROLES: readonly SpecialRole[] = ['werewolf', 'seer', 'witch', 'hunter', 'cupid', 'protector'];
+/** Personajes del pueblo con poderes. Los lobos y los aldeanos se reparten aparte. */
+export type PowerRole = Exclude<Role, 'villager' | 'werewolf'>;
+export const POWER_ROLES: readonly PowerRole[] = ['seer', 'witch', 'hunter', 'cupid', 'protector'];
 
-/** Número de cartas de cada rol especial. Los aldeanos se calculan solos. */
-export type RoleCounts = Partial<Record<SpecialRole, number>>;
+/** Cuántas cartas hay de cada personaje con poderes. */
+export type RoleCounts = Partial<Record<PowerRole, number>>;
+
+/**
+ * Lo que todo el mundo sabe del reparto: qué personajes con poderes hay y
+ * entre cuántos lobos puede haber. El número real de lobos es secreto, y el de
+ * aldeanos también (si no, se podría deducir el de lobos).
+ */
+export interface Composition {
+  powers: RoleCounts;
+  wolves: { min: number; max: number };
+}
 
 export type Team = 'village' | 'wolves';
 
@@ -73,7 +83,12 @@ export interface Durations {
 }
 
 export interface GameSettings {
-  /** Reparto de roles personalizado; `null` = reparto automático según el número de jugadores. */
+  /**
+   * Máximo de lobos. En cada partida se sortean entre 1 y este número (recortado
+   * si no caben con los jugadores que hay), y nadie sabe cuántos han salido.
+   */
+  maxWolves: number;
+  /** Personajes con poderes; `null` = automático según el número de jugadores. */
   roles: RoleCounts | null;
   /** Mostrar el rol de un jugador cuando muere. */
   revealRoleOnDeath: boolean;
@@ -167,8 +182,8 @@ export interface GameView {
   endsAt: number | null;
   night: number;
   day: number;
-  /** Composición de la partida (pública, como en el juego de mesa). */
-  roleCounts: Record<Role, number>;
+  /** Lo que se sabe del reparto (sin el número exacto de lobos). */
+  composition: Composition;
   /** `null` si quien mira no participa en la partida. */
   me: { id: string; role: Role; alive: boolean; loverId: string | null } | null;
   players: PlayerView[];
