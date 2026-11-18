@@ -13,7 +13,8 @@ export class EndScreen {
   protected readonly game = inject(GameService);
   private readonly view = computed(() => this.game.game()!);
 
-  protected readonly side = computed(() => SIDE_INFO[this.view().winner?.side ?? 'none']);
+  protected readonly side = computed(() => SIDE_INFO[this.view().winner?.side ?? 'village']);
+  protected readonly meId = computed(() => this.view().me?.id ?? null);
 
   protected readonly result = computed(() => {
     const me = this.view().me;

@@ -89,7 +89,8 @@ export class GameBoard {
       .flatMap((e) => describePublic(e, (id) => this.game.nameOf(id)));
   });
 
-  private readonly chatSeen = signal(0);
+  // Lo que ya se leyó en el lobby no cuenta como pendiente.
+  private readonly chatSeen = signal(this.game.messages().length);
   protected readonly unreadChat = computed(() =>
     this.tab() === 'chat' ? 0 : Math.max(0, this.game.messages().length - this.chatSeen()),
   );

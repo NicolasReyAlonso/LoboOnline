@@ -85,9 +85,9 @@ bando y ganan si son los dos últimos vivos.
 **Victoria** (se comprueba después de cada anuncio y de cada disparo del cazador):
 
 - Pareja mixta de enamorados como únicos supervivientes: ganan **los enamorados**.
-- No queda ningún lobo: gana **el pueblo**.
+- No queda ningún lobo: gana **el pueblo**, aunque no quede nadie vivo (por ejemplo, si el cazador era el último
+  aldeano y se lleva por delante al último lobo).
 - Solo quedan lobos: ganan **los lobos**.
-- No queda nadie: **nadie** gana.
 
 ## Protocolo (Socket.IO)
 
@@ -164,7 +164,7 @@ Con socket.io-client ≥ 4.6 se puede usar `await socket.emitWithAck(evento, pay
   hunterId: '...' | null,                                    // solo en la fase hunter
   log: LogEntry[],          // historial público: muertes, votaciones, disparos...
   privateLog: PrivateEntry[], // solo tuyo: visiones, pareja, víctima de los lobos...
-  winner: { side: 'village' | 'wolves' | 'lovers' | 'none', playerIds } | null
+  winner: { side: 'village' | 'wolves' | 'lovers', playerIds } | null
 }
 ```
 

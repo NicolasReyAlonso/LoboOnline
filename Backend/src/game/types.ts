@@ -21,8 +21,8 @@ export type RoleCounts = Partial<Record<SpecialRole, number>>;
 
 export type Team = 'village' | 'wolves';
 
-/** Quién gana: el pueblo, los lobos, una pareja de enamorados mixta, o nadie (todos muertos). */
-export type WinningSide = 'village' | 'wolves' | 'lovers' | 'none';
+/** Quién gana: el pueblo, los lobos o una pareja de enamorados mixta. */
+export type WinningSide = 'village' | 'wolves' | 'lovers';
 
 // ---------------------------------------------------------------------------
 // Fases

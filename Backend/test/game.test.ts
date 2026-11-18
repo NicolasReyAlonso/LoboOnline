@@ -181,6 +181,20 @@ describe('cazador', () => {
     expect(game.viewFor('p2').winner).toEqual({ side: 'village', playerIds: ['p1', 'p2', 'p3'] });
   });
 
+  it('si siendo el último aldeano se lleva al último lobo, gana el pueblo', () => {
+    const { game } = setupGame(['werewolf', 'hunter', 'villager']);
+    game.act('p0', { type: 'wolf_vote', target: 'p2' });
+    skipTo(game, 'day_vote');
+    game.act('p0', { type: 'vote', target: 'p1' });
+    game.act('p1', { type: 'vote', target: 'p0' });
+    game.timeout(); // atardecer: empate, nadie muere
+    game.act('p0', { type: 'wolf_vote', target: 'p1' });
+    game.timeout(); // amanecer
+    game.act('p1', { type: 'shoot', target: 'p0' });
+    expect(game.phase).toBe('ended');
+    expect(game.viewFor('p1').winner).toEqual({ side: 'village', playerIds: ['p1', 'p2'] });
+  });
+
   it('si no dispara a tiempo, pierde el disparo y la partida sigue', () => {
     const { game } = setupGame(['werewolf', 'hunter', 'villager', 'villager', 'villager']);
     game.act('p0', { type: 'wolf_vote', target: 'p1' });

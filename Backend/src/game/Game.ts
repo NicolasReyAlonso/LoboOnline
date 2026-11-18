@@ -528,9 +528,12 @@ export class Game {
     else this.beginNight();
   }
 
+  /**
+   * Si no queda ningún lobo gana el pueblo, aunque no quede nadie vivo (p. ej.
+   * el cazador, último aldeano, se lleva por delante al último lobo).
+   */
   private checkWin(): WinningSide | null {
     const alive = this.alivePlayers();
-    if (alive.length === 0) return 'none';
     if (alive.length === 2) {
       const [a, b] = alive as [GamePlayer, GamePlayer];
       if (a.loverId === b.id && isWolf(a.role) !== isWolf(b.role)) return 'lovers';
@@ -542,14 +545,14 @@ export class Game {
   }
 
   private finish(side: WinningSide): void {
-    const playerIds = side === 'none' ? [] : this.players.filter((p) => this.sideOf(p) === side).map((p) => p.id);
+    const playerIds = this.players.filter((p) => this.sideOf(p) === side).map((p) => p.id);
     this.winner = { side, playerIds };
     this.log.push({ kind: 'game_over', winner: side, winnerIds: playerIds });
     this.enterPhase('ended');
   }
 
   /** Bando real de un jugador: los enamorados de bandos distintos forman su propio bando. */
-  private sideOf(p: GamePlayer): Exclude<WinningSide, 'none'> {
+  private sideOf(p: GamePlayer): WinningSide {
     const partner = p.loverId ? this.byId.get(p.loverId) : undefined;
     if (partner && isWolf(partner.role) !== isWolf(p.role)) return 'lovers';
     return isWolf(p.role) ? 'wolves' : 'village';

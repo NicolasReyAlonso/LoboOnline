@@ -13,6 +13,9 @@
         <span class="avatar" [style.background]="color(p.name)">{{ initial(p.name) }}</span>
         <span class="name">
           {{ p.name }}
+          @if (p.id === meId()) {
+            <span class="tag">tú</span>
+          }
           @if (p.lover) {
             💘
           }
