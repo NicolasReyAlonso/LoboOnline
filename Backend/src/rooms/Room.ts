@@ -299,6 +299,7 @@ export class Room {
       limits: { minPlayers: MIN_PLAYERS, maxPlayers: MAX_PLAYERS },
       rolePreview: this.status === 'playing' ? null : this.rolePreview(),
       game: this.game ? this.game.viewFor(playerId) : null,
+      serverTime: Date.now(),
     };
   }
 

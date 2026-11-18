@@ -142,7 +142,8 @@ Con socket.io-client ≥ 4.6 se puede usar `await socket.emitWithAck(evento, pay
   settings: { roles, revealRoleOnDeath, deadSeeEverything, durations: {...} },
   limits: { minPlayers: 4, maxPlayers: 20 },
   rolePreview: { roles: { werewolf: 2, seer: 1, ... } | null, error: string | null } | null,
-  game: GameView | null
+  game: GameView | null,
+  serverTime: 1763484000000   // hora del servidor, para corregir el desfase del reloj del cliente
 }
 ```
 
