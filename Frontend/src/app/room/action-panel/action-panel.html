@@ -1,0 +1,113 @@
+@if (action(); as a) {
+  <section class="card action your-turn">
+    @switch (a.type) {
+      @case ('cupid') {
+        <h2>💘 Elige a los enamorados</h2>
+        <p class="muted">Toca a dos jugadores ({{ selected().length }}/2). Si uno muere, el otro morirá de pena.</p>
+        <button class="btn btn-primary btn-block" [disabled]="selected().length !== 2 || busy()" (click)="confirm()">
+          Enamorarlos
+        </button>
+      }
+      @case ('protect') {
+        <h2>🛡️ ¿A quién proteges esta noche?</h2>
+        <p class="muted">
+          Toca a un jugador para protegerlo de los lobos.
+          @if (a.forbiddenId) {
+            No puedes repetir con {{ name(a.forbiddenId) }}.
+          }
+        </p>
+        <button class="btn btn-primary btn-block" [disabled]="!target() || busy()" (click)="confirm()">
+          {{ target() ? 'Proteger a ' + name(target()) : 'Elige a alguien' }}
+        </button>
+      }
+      @case ('see') {
+        <h2>🔮 ¿Qué carta quieres ver?</h2>
+        <p class="muted">Toca a un jugador para descubrir su personaje. Solo lo sabrás tú.</p>
+        <button class="btn btn-primary btn-block" [disabled]="!target() || busy()" (click)="confirm()">
+          {{ target() ? 'Mirar la carta de ' + name(target()) : 'Elige a alguien' }}
+        </button>
+      }
+      @case ('wolf_vote') {
+        <h2>🐺 Elegid a vuestra víctima</h2>
+        <p class="muted">
+          Toca a un jugador para votarle. Si toda la manada coincide, la noche sigue; si no, al acabar el tiempo gana el
+          más votado.
+        </p>
+        @if (wolfVotes().length) {
+          <ul class="votes">
+            @for (v of wolfVotes(); track v.wolf) {
+              <li>{{ v.wolf }} → <strong>{{ v.target }}</strong></li>
+            }
+          </ul>
+        }
+      }
+      @case ('witch') {
+        <h2>🧪 Tus pociones</h2>
+        @if (a.victimId) {
+          <p>Los lobos han atacado a <strong>{{ name(a.victimId) }}</strong>.</p>
+        } @else {
+          <p>Esta noche los lobos no han atacado a nadie.</p>
+        }
+        <div class="potions">
+          <button
+            type="button"
+            class="btn potion"
+            [class.on]="heal()"
+            [disabled]="!a.canHeal"
+            [attr.aria-pressed]="heal()"
+            (click)="heal.set(!heal())"
+          >
+            💚 {{ heal() ? 'Salvarás a ' + name(a.victimId) : a.canHeal ? 'Usar la poción de vida' : 'Poción de vida no disponible' }}
+          </button>
+          <p class="potion-info muted small">
+            ☠️
+            @if (!a.canPoison) {
+              Ya has usado la poción de muerte.
+            } @else if (target()) {
+              Envenenarás a <strong>{{ name(target()) }}</strong>.
+            } @else {
+              Toca a un jugador si quieres envenenarlo.
+            }
+          </p>
+        </div>
+        <button class="btn btn-primary btn-block" [disabled]="busy()" (click)="confirm()">
+          {{ heal() || target() ? 'Usar las pociones' : 'No hacer nada esta noche' }}
+        </button>
+      }
+      @case ('shoot') {
+        <h2>🏹 Tu último disparo</h2>
+        <p class="muted">Has muerto, pero te queda un cartucho. ¿A quién te llevas contigo?</p>
+        <button class="btn btn-danger btn-block" [disabled]="!target() || busy()" (click)="confirm()">
+          {{ target() ? 'Disparar a ' + name(target()) : 'Elige a alguien' }}
+        </button>
+      }
+      @case ('vote') {
+        <h2>⚖️ ¿A quién linchamos?</h2>
+        <p class="muted">Toca a un jugador para votarle. Puedes cambiar tu voto hasta que acabe el tiempo.</p>
+        <div class="vote-row">
+          <span>
+            Tu voto:
+            <strong>{{ a.hasVoted ? (a.myVote ? name(a.myVote) : 'en blanco') : 'todavía no has votado' }}</strong>
+          </span>
+          <button class="btn btn-ghost" [disabled]="a.hasVoted && a.myVote === null" (click)="voteBlank()">
+            Votar en blanco
+          </button>
+        </div>
+      }
+      @case ('ready') {
+        <h2>🗣️ ¡A debatir!</h2>
+        <p class="muted">
+          Hablad en el chat. Si todos pedís votar, se pasa a la votación sin esperar al final del tiempo.
+          ({{ readyCount() }}/{{ aliveCount() }} quieren votar)
+        </p>
+        <button class="btn btn-block" [class.btn-primary]="!a.ready" (click)="setReady(!a.ready)">
+          {{ a.ready ? 'Mejor esperar un poco más' : '✋ Quiero votar ya' }}
+        </button>
+      }
+    }
+  </section>
+} @else if (waiting(); as w) {
+  <section class="card action">
+    <p class="waiting"><span aria-hidden="true">{{ w.icon }}</span> {{ w.text }}</p>
+  </section>
+}

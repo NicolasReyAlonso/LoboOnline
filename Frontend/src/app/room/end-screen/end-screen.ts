@@ -1,0 +1,35 @@
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { avatarColor, initial } from '../../core/avatar';
+import { GameService } from '../../core/game.service';
+import { ROLE_ICON, roleName, SIDE_INFO } from '../../core/roles';
+
+@Component({
+  selector: 'app-end-screen',
+  templateUrl: './end-screen.html',
+  styleUrl: './end-screen.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class EndScreen {
+  protected readonly game = inject(GameService);
+  private readonly view = computed(() => this.game.game()!);
+
+  protected readonly side = computed(() => SIDE_INFO[this.view().winner?.side ?? 'none']);
+
+  protected readonly result = computed(() => {
+    const me = this.view().me;
+    if (!me) return null;
+    return this.view().winner?.playerIds.includes(me.id) ? '¡Has ganado!' : 'Has perdido…';
+  });
+
+  protected readonly rows = computed(() => {
+    const winners = new Set(this.view().winner?.playerIds ?? []);
+    return this.view().players.map((p) => ({
+      ...p,
+      won: winners.has(p.id),
+      roleLabel: p.role ? `${ROLE_ICON[p.role]} ${roleName(p.role)}` : '¿?',
+    }));
+  });
+
+  protected readonly color = avatarColor;
+  protected readonly initial = initial;
+}

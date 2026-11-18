@@ -1,0 +1,61 @@
+.action {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.your-turn {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    var(--shadow);
+  animation: glow 2.4s ease-in-out infinite;
+}
+
+@keyframes glow {
+  50% {
+    box-shadow:
+      0 0 0 1px var(--accent),
+      0 0 24px rgba(242, 198, 109, 0.35);
+  }
+}
+
+.votes {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.potions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.potion {
+  justify-content: flex-start;
+  border-radius: var(--radius-sm);
+
+  &.on {
+    border-color: var(--good);
+    background: var(--good);
+    color: #fff;
+  }
+}
+
+.vote-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.waiting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  span {
+    font-size: 1.6rem;
+  }
+}
