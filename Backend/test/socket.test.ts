@@ -118,6 +118,16 @@ describe('servidor', () => {
     });
   });
 
+  it('si falla al unirse a otra sala, sigue en la suya', async () => {
+    const first = await lobbyWith(2);
+    const second = await lobbyWith(1); // su anfitrión se llama igual
+    const res = await first.guests[0]!.emitWithAck('room:join', { code: second.code, name: 'Anfitrión' });
+    expect(res).toMatchObject({ ok: false, code: 'name_taken' });
+    expect(ok(await first.guests[0]!.emitWithAck('chat:history'))).toEqual([]);
+    const state = await waitForState(first.host, (s) => s.players.length === 2);
+    expect(state.players.every((p) => p.connected)).toBe(true);
+  });
+
   it('solo el anfitrión cambia ajustes y empieza; hacen falta suficientes jugadores', async () => {
     const { host, guests } = await lobbyWith(3);
     expect(await guests[0]!.emitWithAck('game:start')).toMatchObject({ ok: false, code: 'not_host' });

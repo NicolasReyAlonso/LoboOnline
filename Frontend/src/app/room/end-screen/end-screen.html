@@ -1,0 +1,37 @@
+<section class="card end">
+  <div class="banner">
+    <span class="side-icon" aria-hidden="true">{{ side().icon }}</span>
+    <h2>{{ side().label }}</h2>
+    @if (result(); as r) {
+      <p class="result">{{ r }}</p>
+    }
+  </div>
+
+  <ul class="players">
+    @for (p of rows(); track p.id) {
+      <li [class.won]="p.won" [class.dead]="!p.alive">
+        <span class="avatar" [style.background]="color(p.name)">{{ initial(p.name) }}</span>
+        <span class="name">
+          {{ p.name }}
+          @if (p.id === meId()) {
+            <span class="tag">tú</span>
+          }
+          @if (p.lover) {
+            💘
+          }
+        </span>
+        <span class="role">{{ p.roleLabel }}</span>
+        <span class="status" [attr.aria-label]="p.won ? 'Ganador' : ''">{{ p.won ? '🏆' : p.alive ? '' : '💀' }}</span>
+      </li>
+    }
+  </ul>
+
+  <div class="actions">
+    @if (game.isHost()) {
+      <button class="btn btn-primary btn-lg" (click)="game.returnToLobby()">Jugar otra vez</button>
+    } @else {
+      <p class="muted small">Esperando a que el anfitrión prepare otra partida…</p>
+    }
+    <button class="btn btn-ghost" (click)="game.leave()">Salir de la sala</button>
+  </div>
+</section>

@@ -1,0 +1,77 @@
+.lobby {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.code {
+  font-size: clamp(2rem, 9vw, 2.8rem);
+  letter-spacing: 0.2em;
+}
+
+.layout {
+  display: grid;
+  gap: 16px;
+
+  @media (min-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+
+    .chat-card {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+  }
+
+  .offline {
+    opacity: 0.55;
+  }
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hint {
+  margin-top: 12px;
+}
+
+.chat-card {
+  height: 340px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}

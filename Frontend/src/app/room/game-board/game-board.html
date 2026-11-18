@@ -1,0 +1,89 @@
+<main class="page board" [attr.data-tab]="tab()">
+  <header class="card phase">
+    <span class="phase-icon" aria-hidden="true">{{ phase().icon }}</span>
+    <div class="phase-text">
+      <p class="eyebrow">{{ counter() }}</p>
+      <h1>{{ phase().title }}</h1>
+      <p class="muted small">{{ phase().narration }}</p>
+    </div>
+    <app-countdown [endsAt]="view().endsAt" />
+  </header>
+
+  <div class="layout">
+    <section class="panel main-panel">
+      @if (me(); as me) {
+        <button
+          type="button"
+          class="card role"
+          [class.dead]="!me.alive"
+          [attr.aria-expanded]="showRoleInfo()"
+          (click)="showRoleInfo.set(!showRoleInfo())"
+        >
+          <span class="role-icon" aria-hidden="true">{{ icon[me.role] }}</span>
+          <span class="role-text">
+            <span class="muted small">Tu personaje</span>
+            <strong>{{ roleName(me.role) }}</strong>
+          </span>
+          @if (!me.alive) {
+            <span class="chip">💀 Muerto</span>
+          }
+          @if (me.loverId) {
+            <span class="chip lover">💘 {{ game.nameOf(me.loverId) }}</span>
+          }
+          <span class="chevron" aria-hidden="true">{{ showRoleInfo() ? '▴' : '▾' }}</span>
+        </button>
+        @if (showRoleInfo()) {
+          <p class="role-description small">{{ roleDescription(me.role) }}</p>
+        }
+      }
+
+      @if (announcement().length) {
+        <div class="card announcement" role="status">
+          @for (line of announcement(); track $index) {
+            <p><span aria-hidden="true">{{ line.icon }}</span> {{ line.text }}</p>
+          }
+        </div>
+      }
+
+      @if (view().phase === 'ended') {
+        <app-end-screen />
+      } @else {
+        <app-action-panel [(selected)]="selected" />
+        <app-player-grid
+          [players]="view().players"
+          [meId]="me()?.id ?? null"
+          [selectable]="selectable()"
+          [selected]="selected()"
+          [votes]="votes()"
+          [myVote]="myVote()"
+          [readyIds]="view().readyIds"
+          [offline]="offline()"
+          (pick)="onPick($event)"
+        />
+      }
+    </section>
+
+    <section class="panel card chat-panel">
+      <app-chat />
+    </section>
+
+    <section class="panel card log-panel">
+      <app-game-log />
+    </section>
+  </div>
+
+  <nav class="tabbar" aria-label="Secciones">
+    <button type="button" [class.active]="tab() === 'game'" (click)="tab.set('game')">
+      <span aria-hidden="true">🎴</span> Partida
+    </button>
+    <button type="button" [class.active]="tab() === 'chat'" (click)="tab.set('chat')">
+      <span aria-hidden="true">💬</span> Chat
+      @if (unreadChat() > 0) {
+        <span class="badge">{{ unreadChat() }}</span>
+      }
+    </button>
+    <button type="button" [class.active]="tab() === 'log'" (click)="tab.set('log')">
+      <span aria-hidden="true">📜</span> Crónica
+    </button>
+  </nav>
+</main>

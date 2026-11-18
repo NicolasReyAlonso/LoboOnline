@@ -1,0 +1,81 @@
+<section class="card settings">
+  <div class="card-title">
+    <h2>Personajes</h2>
+    @if (!editable()) {
+      <span class="muted small">Los elige el anfitrión</span>
+    }
+  </div>
+
+  <div class="chips">
+    @for (chip of previewChips(); track chip.role) {
+      <span class="chip">{{ chip.label }}</span>
+    }
+  </div>
+  @if (preview()?.error; as error) {
+    <p class="error-text">{{ error }}</p>
+  }
+
+  @if (editable()) {
+    <label class="check">
+      <input #autoBox type="checkbox" [checked]="auto()" (change)="setAuto(autoBox.checked)" />
+      Reparto automático según el número de jugadores
+    </label>
+
+    @if (!auto()) {
+      <div class="custom">
+        <div class="stepper">
+          <span>{{ icon.werewolf }} Lobos</span>
+          <div class="row">
+            <button class="icon-btn" aria-label="Un lobo menos" (click)="setWolves((counts().werewolf ?? 1) - 1)">−</button>
+            <strong>{{ counts().werewolf ?? 0 }}</strong>
+            <button class="icon-btn" aria-label="Un lobo más" (click)="setWolves((counts().werewolf ?? 1) + 1)">+</button>
+          </div>
+        </div>
+        @for (role of uniqueRoles; track role) {
+          <label class="check">
+            <input #roleBox type="checkbox" [checked]="!!counts()[role]" (change)="toggleRole(role, roleBox.checked)" />
+            {{ icon[role] }} {{ roleName(role) }}
+          </label>
+        }
+        <p class="muted small">El resto de jugadores serán aldeanos.</p>
+      </div>
+    }
+
+    <details class="more">
+      <summary>Tiempos y opciones</summary>
+      <div class="durations">
+        @for (f of durationFields; track f.key) {
+          <label class="field">
+            {{ f.label }} (segundos)
+            <input
+              #durationInput
+              class="input"
+              type="number"
+              inputmode="numeric"
+              step="5"
+              [min]="limits[f.key][0]"
+              [max]="limits[f.key][1]"
+              [value]="settings().durations[f.key]"
+              (change)="setDuration(f.key, durationInput)"
+            />
+          </label>
+        }
+      </div>
+      @for (o of options; track o.key) {
+        <label class="check">
+          <input #optionBox type="checkbox" [checked]="settings()[o.key]" (change)="setOption(o.key, optionBox.checked)" />
+          {{ o.label }}
+        </label>
+      }
+    </details>
+  } @else {
+    <ul class="summary muted small">
+      @for (f of durationFields; track f.key) {
+        <li>{{ f.label }}: {{ formatSeconds(settings().durations[f.key]) }}</li>
+      }
+      @for (o of options; track o.key) {
+        <li>{{ o.label }}: {{ settings()[o.key] ? 'sí' : 'no' }}</li>
+      }
+    </ul>
+  }
+</section>

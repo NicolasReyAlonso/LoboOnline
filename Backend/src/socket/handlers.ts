@@ -95,8 +95,10 @@ export function registerHandlers(io: LoboServer, rooms: RoomManager): void {
       const room = rooms.get(code);
       if (!room) throw new GameError('room_not_found', 'No existe ninguna sala con ese código.');
       if (socket.data.roomCode === room.code) throw new GameError('already_in_room', 'Ya estás en esta sala.');
+      // Primero se entra (puede fallar: nombre repetido, sala llena...) y solo entonces se sale de la anterior.
+      const player = room.join(name, socket.id);
       leaveCurrent();
-      return enter(room, room.join(name, socket.id));
+      return enter(room, player);
     });
 
     on(socket, 'room:rejoin', true, (payload) => {

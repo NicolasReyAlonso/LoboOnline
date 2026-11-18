@@ -41,6 +41,11 @@ export interface RoomState {
   rolePreview: { roles: Record<Role, number> | null; error: string | null } | null;
   /** `null` mientras se está en el lobby. */
   game: GameView | null;
+  /**
+   * Hora del servidor (ms) al enviar el estado. El reloj de un móvil puede ir
+   * desfasado: usa `serverTime - Date.now()` para corregir las cuentas atrás.
+   */
+  serverTime: number;
 }
 
 export interface ChatMessage {

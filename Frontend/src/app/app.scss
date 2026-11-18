@@ -1,0 +1,11 @@
+.offline {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: calc(8px + env(safe-area-inset-top)) 16px 8px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}

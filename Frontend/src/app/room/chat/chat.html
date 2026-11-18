@@ -1,0 +1,44 @@
+<div class="chat" [attr.data-channel]="active()">
+  @if (channels().length > 1) {
+    <div class="tabs" role="tablist">
+      @for (c of channels(); track c) {
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          [class.active]="c === active()"
+          [attr.aria-selected]="c === active()"
+          (click)="select(c)"
+        >
+          {{ info[c].icon }} {{ info[c].label }}
+          @if (c !== active() && unread()[c] > 0) {
+            <span class="badge">{{ unread()[c] }}</span>
+          }
+        </button>
+      }
+    </div>
+  } @else {
+    <h2 class="title">{{ info[active()].icon }} Chat</h2>
+  }
+
+  <ul #list class="messages" aria-live="polite">
+    @for (m of visible(); track m.id) {
+      <li [class.mine]="m.playerId === myId()">
+        <span class="author" [style.color]="color(m.name)">{{ m.name }}</span>
+        <span class="text">{{ m.text }}</span>
+        <time class="time">{{ m.ts | date: 'HH:mm' }}</time>
+      </li>
+    } @empty {
+      <li class="empty muted small">Todavía no hay mensajes.</li>
+    }
+  </ul>
+
+  @if (blockReason(); as reason) {
+    <p class="blocked muted small">{{ reason }}</p>
+  } @else {
+    <form class="composer" (submit)="$event.preventDefault(); send(msg)">
+      <input #msg class="input" maxlength="500" placeholder="Escribe un mensaje…" autocomplete="off" aria-label="Mensaje" />
+      <button class="btn btn-primary" type="submit" aria-label="Enviar">➤</button>
+    </form>
+  }
+</div>

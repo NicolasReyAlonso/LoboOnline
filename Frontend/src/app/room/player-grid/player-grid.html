@@ -1,0 +1,55 @@
+<ul class="grid">
+  @for (p of players(); track p.id) {
+    @let canPick = selectable().has(p.id);
+    @let isSelected = selected().includes(p.id);
+    @let pVoters = voters().get(p.id);
+    <li>
+      <button
+        type="button"
+        class="player"
+        [class.dead]="!p.alive"
+        [class.me]="p.id === meId()"
+        [class.pickable]="canPick"
+        [class.selected]="isSelected"
+        [class.voted]="p.id === myVote()"
+        [disabled]="!canPick"
+        [attr.aria-pressed]="canPick ? isSelected : null"
+        (click)="pick.emit(p.id)"
+      >
+        <span class="avatar" [style.background]="p.alive ? color(p.name) : null">
+          {{ p.alive ? initial(p.name) : '💀' }}
+        </span>
+        <span class="info">
+          <span class="name">
+            {{ p.name }}
+            @if (p.id === meId()) {
+              <span class="tag">tú</span>
+            }
+          </span>
+          @if (p.role) {
+            <span class="role" [class.wolf]="isWolf(p.role)">{{ icon[p.role] }} {{ roleName(p.role) }}</span>
+          } @else {
+            <span class="role muted">¿?</span>
+          }
+          @if (pVoters) {
+            <span class="voters">← {{ pVoters.join(', ') }}</span>
+          }
+        </span>
+        <span class="badges">
+          @if (p.lover) {
+            <span title="Enamorado" aria-label="Enamorado">💘</span>
+          }
+          @if (ready().has(p.id)) {
+            <span title="Quiere votar" aria-label="Quiere votar">✋</span>
+          }
+          @if (offline().has(p.id)) {
+            <span title="Desconectado" aria-label="Desconectado">📴</span>
+          }
+          @if (pVoters) {
+            <span class="count" [attr.aria-label]="pVoters.length + ' votos'">{{ pVoters.length }}</span>
+          }
+        </span>
+      </button>
+    </li>
+  }
+</ul>

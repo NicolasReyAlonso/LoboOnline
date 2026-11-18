@@ -1,0 +1,70 @@
+<main class="page home">
+  <header class="hero">
+    <div class="moon" aria-hidden="true"></div>
+    <h1>LoboOnline</h1>
+    <p class="muted">Cae la noche en el pueblo. Entre vosotros se esconden los lobos…</p>
+  </header>
+
+  @if (game.state(); as state) {
+    <a class="card back-to-room" [routerLink]="['/sala', state.code]">
+      <span>Estás en la sala <strong>{{ state.code }}</strong></span>
+      <span class="btn btn-primary">Volver</span>
+    </a>
+  }
+
+  <section class="card stack">
+    <label class="field">
+      Tu nombre
+      <input
+        #nameInput
+        class="input"
+        maxlength="20"
+        autocomplete="nickname"
+        placeholder="¿Cómo te llaman en el pueblo?"
+        [value]="name()"
+        (input)="name.set(nameInput.value)"
+        (keydown.enter)="create()"
+      />
+    </label>
+
+    <button class="btn btn-primary btn-lg" [disabled]="!validName() || busy()" (click)="create()">
+      Crear una sala
+    </button>
+
+    <div class="divider"><span>o únete a una</span></div>
+
+    <form class="join" (submit)="$event.preventDefault(); join()">
+      <input
+        #codeInput
+        class="input code"
+        maxlength="5"
+        placeholder="CÓDIGO"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        aria-label="Código de la sala"
+        [value]="code()"
+        (input)="setCode(codeInput)"
+      />
+      <button class="btn" type="submit" [disabled]="!validName() || code().length !== 5 || busy()">Entrar</button>
+    </form>
+    @if (!validName()) {
+      <p class="muted small">Escribe tu nombre para crear o unirte a una sala.</p>
+    }
+  </section>
+
+  <section class="card">
+    <h2 class="roles-title">Los personajes</h2>
+    <ul class="roles">
+      @for (r of roles; track r.role) {
+        <li>
+          <span class="role-icon" aria-hidden="true">{{ r.icon }}</span>
+          <div>
+            <strong>{{ r.name }}</strong>
+            <p class="muted small">{{ r.description }}</p>
+          </div>
+        </li>
+      }
+    </ul>
+  </section>
+</main>
