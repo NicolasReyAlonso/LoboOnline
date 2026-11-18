@@ -2,17 +2,15 @@ import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { Server } from 'socket.io';
 import type { ServerConfig } from './config.js';
-import { RoomManager } from './rooms/RoomManager.js';
 import type { Transport } from './rooms/Room.js';
+import { RoomManager } from './rooms/RoomManager.js';
 import { registerHandlers, type LoboServer } from './socket/handlers.js';
 
 export function createLoboServer(config: ServerConfig) {
-  let rooms: RoomManager | undefined;
-
   const httpServer = createServer((req, res) => {
     if (req.method === 'GET' && (req.url === '/health' || req.url === '/')) {
       res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(JSON.stringify({ ok: true, rooms: rooms?.size ?? 0 }));
+      res.end(JSON.stringify({ ok: true, rooms: rooms.size }));
       return;
     }
     res.writeHead(404, { 'content-type': 'application/json' });
@@ -27,14 +25,13 @@ export function createLoboServer(config: ServerConfig) {
       target.emit(event, ...args);
     },
   };
-  rooms = new RoomManager(transport, config.rooms);
+  const rooms = new RoomManager(transport, config.rooms);
   registerHandlers(io, rooms);
-  const manager = rooms;
 
   return {
     httpServer,
     io,
-    rooms: manager,
+    rooms,
     /** Arranca el servidor. Con `port = 0` elige un puerto libre (útil en tests). */
     listen(port: number = config.port): Promise<number> {
       return new Promise((resolve, reject) => {
@@ -43,7 +40,7 @@ export function createLoboServer(config: ServerConfig) {
       });
     },
     async close(): Promise<void> {
-      manager.disposeAll();
+      rooms.disposeAll();
       await io.close();
     },
   };
