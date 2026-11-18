@@ -124,23 +124,21 @@ export class Room {
     const p = this.players.get(playerId);
     if (!p || p.socketId !== socketId) return;
     p.socketId = null;
-    if (this.status !== 'playing') {
-      this.clearRemovalTimer(p.id);
-      this.removalTimers.set(
-        p.id,
-        setTimeout(() => this.remove(p.id), this.config.lobbyGraceMs),
-      );
-    }
+    if (this.status !== 'playing') this.scheduleRemoval(p.id);
     this.scheduleEmptyCheck();
     this.broadcast();
   }
 
-  /** Salida voluntaria. Durante una partida el jugador sigue en ella (puede volver con su token). */
+  /**
+   * Salida voluntaria. Durante una partida el jugador sigue en ella (puede
+   * volver con su token), pero deja de ser anfitrión.
+   */
   leave(playerId: string): void {
     const p = this.players.get(playerId);
     if (!p) return;
     if (this.status === 'playing') {
       p.socketId = null;
+      if (this.hostId === p.id) this.transferHost();
       this.scheduleEmptyCheck();
       this.broadcast();
     } else {
@@ -332,15 +330,18 @@ export class Room {
     if (!this.players.delete(playerId)) return;
     this.clearRemovalTimer(playerId);
     this.lastChatAt.delete(playerId);
-    if (this.hostId === playerId) {
-      const players = [...this.players.values()];
-      this.hostId = (players.find((p) => p.socketId) ?? players[0])?.id ?? null;
-    }
+    if (this.hostId === playerId) this.transferHost();
     if (this.players.size === 0) {
       this.onEmpty(this);
       return;
     }
     if (notify) this.broadcast();
+  }
+
+  /** El anfitrión pasa al primer jugador conectado (o al primero que quede). */
+  private transferHost(): void {
+    const others = [...this.players.values()].filter((p) => p.id !== this.hostId);
+    this.hostId = (others.find((p) => p.socketId) ?? others[0])?.id ?? null;
   }
 
   private assertHost(playerId: string): void {
@@ -350,7 +351,22 @@ export class Room {
   /** Tras cualquier cambio en la partida: reprograma el temporizador de fase y avisa a todos. */
   private afterGameChange(): void {
     this.syncPhaseTimer();
+    if (this.game?.isOver) {
+      // Quien se desconectó durante la partida y no ha vuelto deja la sala tras el periodo de gracia
+      // (si era el anfitrión, otro podrá volver al lobby).
+      for (const p of this.players.values()) {
+        if (!p.socketId && !this.removalTimers.has(p.id)) this.scheduleRemoval(p.id);
+      }
+    }
     this.broadcast();
+  }
+
+  private scheduleRemoval(playerId: string): void {
+    this.clearRemovalTimer(playerId);
+    this.removalTimers.set(
+      playerId,
+      setTimeout(() => this.remove(playerId), this.config.lobbyGraceMs),
+    );
   }
 
   private syncPhaseTimer(): void {

@@ -108,24 +108,19 @@ describe('bruja', () => {
 });
 
 describe('protector', () => {
-  it('salva a quien protege y no puede repetir dos noches seguidas', () => {
+  it('salva a quien protege', () => {
     const { game } = setupGame(['werewolf', 'protector', 'villager', 'villager', 'villager']);
     game.act('p1', { type: 'protect', target: 'p2' });
     game.act('p0', { type: 'wolf_vote', target: 'p2' });
     expect(game.viewFor('p2').log.at(-1)).toMatchObject({ kind: 'dawn', deaths: [] });
-
-    passDay(game, ['p0', 'p1', 'p2', 'p3', 'p4']);
-    // passDay deja la partida en el turno de los lobos; la noche 2 empieza por el protector,
-    // así que lo comprobamos en una partida nueva más abajo.
   });
 
   it('no puede proteger a la misma persona dos noches seguidas', () => {
     const { game } = setupGame(['werewolf', 'protector', 'villager', 'villager', 'villager']);
     game.act('p1', { type: 'protect', target: 'p2' });
     game.act('p0', { type: 'wolf_vote', target: 'p3' });
-    skipTo(game, 'day_vote');
-    for (const id of ['p0', 'p1', 'p2', 'p4']) game.act(id, { type: 'vote', target: null });
-    skipTo(game, 'night_protector');
+    passDay(game, ['p0', 'p1', 'p2', 'p4']);
+    expect(game.phase).toBe('night_protector');
     expect(game.viewFor('p1').action).toMatchObject({ type: 'protect', forbiddenId: 'p2' });
     expect(() => game.act('p1', { type: 'protect', target: 'p2' })).toThrow(/dos noches seguidas/);
     game.act('p1', { type: 'protect', target: 'p1' });
@@ -331,13 +326,9 @@ describe('pasos fantasma', () => {
   it('si la vidente ha muerto su turno se sigue mostrando, con el mismo contador, pero acaba antes', () => {
     const { game, now } = setupGame(['werewolf', 'seer', 'villager', 'villager', 'villager']);
     game.act('p1', { type: 'see', target: 'p0' });
-    game.act('p0', { type: 'wolf_vote', target: 'p1' });
+    game.act('p0', { type: 'wolf_vote', target: 'p1' }); // muere la vidente
     passDay(game, ['p0', 'p2', 'p3', 'p4']);
-    // passDay avanza hasta los lobos, así que comprobamos la noche 3 desde el principio.
-    game.act('p0', { type: 'wolf_vote', target: 'p4' });
-    skipTo(game, 'day_vote');
-    for (const id of ['p0', 'p2', 'p3']) game.act(id, { type: 'vote', target: null });
-    game.timeout(); // atardecer
+    expect(game.night).toBe(2);
     expect(game.phase).toBe('night_seer');
 
     const view = game.viewFor('p2');

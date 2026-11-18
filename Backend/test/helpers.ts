@@ -29,9 +29,12 @@ export function skipTo(game: Game, phase: Phase): void {
   if (game.phase !== phase) throw new Error(`No se llegó a la fase ${phase} (estamos en ${game.phase})`);
 }
 
-/** Todos los vivos votan en blanco: nadie es linchado y se pasa a la siguiente noche. */
+/**
+ * Todos los vivos votan en blanco: nadie es linchado. Deja la partida en el
+ * primer paso de la noche siguiente.
+ */
 export function passDay(game: Game, alive: string[]): void {
   skipTo(game, 'day_vote');
   for (const id of alive) game.act(id, { type: 'vote', target: null });
-  skipTo(game, 'night_wolves');
+  game.timeout(); // atardecer
 }
