@@ -1,0 +1,52 @@
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-title {
+  margin-bottom: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.custom {
+  padding: 4px 12px;
+  border-left: 2px solid var(--border);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+
+  strong {
+    min-width: 24px;
+    text-align: center;
+  }
+}
+
+.more summary {
+  min-height: 40px;
+  padding: 8px 0;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.durations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.summary {
+  margin: 0;
+  padding-left: 18px;
+}

@@ -1,0 +1,118 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+}
+
+.title {
+  font-size: 1rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &.active {
+    background: var(--surface-strong);
+    color: var(--text);
+    font-weight: 600;
+  }
+}
+
+.badge {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+.messages {
+  flex: 1;
+  min-height: 120px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+
+  li {
+    padding: 4px 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.author {
+  margin-right: 6px;
+  font-weight: 700;
+  filter: brightness(1.35);
+}
+
+.time {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.mine .author::after {
+  content: ' (tú)';
+  color: var(--muted);
+  font-weight: 400;
+}
+
+[data-channel='wolves'] .messages {
+  padding-left: 10px;
+  border-left: 3px solid var(--wolf);
+}
+
+[data-channel='dead'] .messages {
+  padding-left: 10px;
+  border-left: 3px solid var(--muted);
+}
+
+.empty {
+  padding: 12px 0;
+}
+
+.blocked {
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+
+  .btn {
+    flex: none;
+    width: 48px;
+    padding: 0;
+  }
+}
