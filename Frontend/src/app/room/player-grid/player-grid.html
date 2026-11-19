@@ -42,9 +42,6 @@
           @if (offline().has(p.id)) {
             <span title="Desconectado" aria-label="Desconectado">📴</span>
           }
-          @if (pVoters) {
-            <span class="count" [attr.aria-label]="pVoters.length + ' votos'">{{ pVoters.length }}</span>
-          }
         </span>
       </button>
       @if (pVoters) {
@@ -63,6 +60,9 @@
             } @else {
               ← {{ pVoters.join(', ') }}
             }
+          </span>
+          <span class="count" [attr.aria-label]="pVoters.length + (pVoters.length === 1 ? ' voto' : ' votos')">
+            {{ pVoters.length }}
           </span>
           <span class="chevron" aria-hidden="true">{{ open ? '▴' : '▾' }}</span>
         </button>

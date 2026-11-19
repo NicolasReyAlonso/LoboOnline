@@ -113,7 +113,7 @@ li {
 
 .voters {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   width: 100%;
   min-height: 32px;
@@ -167,9 +167,10 @@ li {
 
 .count {
   display: grid;
+  flex-shrink: 0;
   place-items: center;
-  min-width: 24px;
-  height: 24px;
+  min-width: 22px;
+  height: 22px;
   border-radius: 999px;
   background: var(--danger);
   color: #fff;
