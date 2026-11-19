@@ -41,6 +41,7 @@ src/app/
     roles.ts, phases.ts Iconos y textos de personajes y fases
     log.ts              Convierte el historial de la partida en frases
     chat-rules.ts       Qué canales puedes leer y escribir (copia de las reglas del servidor)
+    role-cards.ts       Qué personajes tienen tarjeta dibujada (lo genera `npm run tarjetas`)
   pages/
     home/               Inicio: crear sala o unirse con código
     room/               /sala/:code → enlace de invitación, reconexión, lobby o partida
@@ -53,7 +54,10 @@ src/app/
     game-log/           Composición, tus secretos y crónica
     end-screen/         Resultado final
     chat/               Chat por canales
-  shared/               Countdown y toasts
+    role-card/          Tu carta: aparece en grande al empezar y luego se queda abajo, en la mano
+  shared/               Countdown, toasts y card-art (el dibujo de una tarjeta)
+tarjetas/               Dibujos originales de las tarjetas (2048×2048)
+scripts/tarjetas.mjs    Los prepara para la web en public/tarjetas/
 ```
 
 ## Cómo funciona
@@ -67,7 +71,17 @@ src/app/
   quién se puede elegir y `ActionPanel` muestra las instrucciones y el botón de confirmar.
 - **El tema cambia según la fase:** azul noche o pergamino de día, mediante `<body data-theme>` y las variables CSS
   de [`styles.scss`](src/styles.scss).
+- **Tarjetas:** cada dibujo se convierte en dos máscaras (las líneas y la silueta de la tarjeta) que se pintan con
+  `--card-ink` y `--card-paper`: tinta oscura sobre papel claro de día y en negativo de noche.
 - **Reconexión:** si se cae la conexión o se recarga la página, el servicio vuelve a la sala con el token guardado.
+
+## Añadir o cambiar una tarjeta
+
+1. Guarda el dibujo en `tarjetas/` como PNG cuadrado, con líneas negras sobre fondo transparente y con el borde de la
+   tarjeta cerrado. Para la vidente, el nombre que se espera es `tarjeta_Vidente.png` (la lista está al principio de
+   [`scripts/tarjetas.mjs`](scripts/tarjetas.mjs)).
+2. Ejecuta `npm run tarjetas`. Genera las imágenes de `public/tarjetas/` y actualiza `src/app/core/role-cards.ts`.
+3. Haz commit de todo. Mientras un personaje no tenga dibujo, se usa una tarjeta provisional con su icono.
 
 ## Producción
 
