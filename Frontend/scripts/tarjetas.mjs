@@ -20,7 +20,7 @@ import { crc32, deflateSync, inflateSync } from 'node:zlib';
 const SOURCES = {
   villager: 'tarjeta_Campesino.png',
   werewolf: 'tarjeta_lobo.png',
-  seer: 'tarjeta_Vidente.png',
+  seer: 'tarjeta_vidente.png',
   witch: 'tarjeta_bruja.png',
   hunter: 'tarjeta_Hunter.png',
   cupid: 'tarjeta_Cupido.png',

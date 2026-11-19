@@ -78,8 +78,8 @@ scripts/tarjetas.mjs    Los prepara para la web en public/tarjetas/
 ## Añadir o cambiar una tarjeta
 
 1. Guarda el dibujo en `tarjetas/` como PNG cuadrado, con líneas negras sobre fondo transparente y con el borde de la
-   tarjeta cerrado. Para la vidente, el nombre que se espera es `tarjeta_Vidente.png` (la lista está al principio de
-   [`scripts/tarjetas.mjs`](scripts/tarjetas.mjs)).
+   tarjeta cerrado. Si es un personaje nuevo, añade su fichero a la lista del principio de
+   [`scripts/tarjetas.mjs`](scripts/tarjetas.mjs).
 2. Ejecuta `npm run tarjetas`. Genera las imágenes de `public/tarjetas/` y actualiza `src/app/core/role-cards.ts`.
 3. Haz commit de todo. Mientras un personaje no tenga dibujo, se usa una tarjeta provisional con su icono.
 

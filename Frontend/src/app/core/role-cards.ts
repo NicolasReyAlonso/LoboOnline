@@ -5,6 +5,7 @@ import type { Role } from '@lobo/game/types';
 export const ROLES_WITH_CARD: ReadonlySet<Role> = new Set<Role>([
   'villager',
   'werewolf',
+  'seer',
   'witch',
   'hunter',
   'cupid',

@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import type { Role } from '@lobo/game/types';
+import { ROLES_WITH_CARD } from '../../core/role-cards';
 import { CardArt } from './card-art';
 
 function render(role: 'werewolf' | 'seer') {
@@ -18,8 +20,21 @@ describe('CardArt', () => {
   });
 
   it('sin dibujo, usa una tarjeta provisional con el icono y el nombre', () => {
-    const el = render('seer');
-    expect(el.querySelector('.lines')).toBeNull();
-    expect(el.querySelector('.placeholder')?.textContent).toContain('Vidente');
+    // Ahora todos tienen dibujo: se simula que a la vidente le falta.
+    const withCard = ROLES_WITH_CARD as Set<Role>;
+    withCard.delete('seer');
+    try {
+      const el = render('seer');
+      expect(el.querySelector('.lines')).toBeNull();
+      expect(el.querySelector('.placeholder')?.textContent).toContain('Vidente');
+    } finally {
+      withCard.add('seer');
+    }
+  });
+
+  it('todos los personajes tienen ya su tarjeta', () => {
+    expect([...ROLES_WITH_CARD].sort()).toEqual(
+      ['cupid', 'hunter', 'protector', 'seer', 'villager', 'werewolf', 'witch'].sort(),
+    );
   });
 });
