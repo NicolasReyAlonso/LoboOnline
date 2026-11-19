@@ -27,6 +27,11 @@
   --good: #63c39a;
   --love: #ff7ab6;
   --shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+
+  // Tarjetas de personaje: de noche, en negativo (líneas claras sobre negro).
+  --card-paper: #05060c;
+  --card-ink: #f1f0fa;
+  --card-shadow: drop-shadow(0 0 14px rgba(150, 160, 255, 0.3));
 }
 
 body[data-theme='day'] {
@@ -46,6 +51,10 @@ body[data-theme='day'] {
   --good: #2f8f63;
   --love: #d63f86;
   --shadow: 0 12px 32px rgba(120, 80, 20, 0.12);
+
+  --card-paper: #fffaf1;
+  --card-ink: #2d2216;
+  --card-shadow: drop-shadow(0 8px 14px rgba(70, 45, 10, 0.3));
 }
 
 *,

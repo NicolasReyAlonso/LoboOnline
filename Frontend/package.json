@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false",
-    "start:lan": "ng serve --host 0.0.0.0"
+    "start:lan": "ng serve --host 0.0.0.0",
+    "tarjetas": "node scripts/tarjetas.mjs"
   },
   "prettier": {
     "printWidth": 100,
