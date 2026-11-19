@@ -1,0 +1,169 @@
+// La carta es siempre el mismo elemento fijo; al cambiar entre "en la mano" y
+// "en grande" se animan su posición y su tamaño.
+:host {
+  // En la mano (móvil): abajo a la izquierda, asomando por encima de las pestañas.
+  --dock: 64px;
+  --dock-left: max(12px, env(safe-area-inset-left));
+  --dock-bottom: calc(max(6px, env(safe-area-inset-bottom)) + 18px);
+  // En grande: centrada y un poco subida para dejar sitio al texto.
+  --big: min(78vw, 50dvh, 420px);
+  --lift: 64px;
+  --ease: cubic-bezier(0.2, 0.85, 0.25, 1);
+}
+
+@media (min-width: 960px) {
+  :host {
+    --dock: 120px;
+    --dock-left: 28px;
+    --dock-bottom: 24px;
+  }
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(4, 5, 14, 0.66);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+
+  &.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.card {
+  position: fixed;
+  z-index: 25;
+  top: calc(100dvh - var(--dock-bottom) - var(--dock));
+  left: var(--dock-left);
+  width: var(--dock);
+  height: var(--dock);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  filter: var(--card-shadow);
+  rotate: -8deg;
+  transition:
+    top 0.75s var(--ease),
+    left 0.75s var(--ease),
+    width 0.75s var(--ease),
+    height 0.75s var(--ease),
+    rotate 0.75s var(--ease),
+    translate 0.2s ease;
+
+  &:not(.big):hover {
+    translate: 0 -6px;
+  }
+
+  &.big {
+    z-index: 1001;
+    top: calc(50dvh - var(--big) / 2 - var(--lift));
+    left: calc(50% - var(--big) / 2);
+    width: var(--big);
+    height: var(--big);
+    rotate: 0deg;
+  }
+
+  // Al empezar la partida la carta se da la vuelta mientras aparece.
+  &.intro {
+    animation: reveal 0.9s var(--ease) both;
+  }
+
+  &.dead:not(.big) app-card-art {
+    opacity: 0.55;
+  }
+
+  app-card-art {
+    width: 100%;
+    transition: opacity 0.4s ease;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(110deg) scale(0.4);
+  }
+}
+
+.dead-mark {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.caption {
+  position: fixed;
+  z-index: 1001;
+  top: calc(50dvh + var(--big) / 2 - var(--lift) + 18px);
+  left: 50%;
+  width: min(calc(100vw - 32px), 460px);
+  translate: -50% 0;
+  color: #fff;
+  text-align: center;
+  animation: rise 0.5s 0.45s var(--ease) both;
+
+  &.leaving {
+    animation: fade 0.25s ease reverse both;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    margin: 2px 0 6px;
+    font-size: 1.7rem;
+  }
+}
+
+.eyebrow {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.description {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.92rem;
+}
+
+.hint {
+  margin-top: 10px !important;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: -50% 10px;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .backdrop {
+    transition: none;
+  }
+
+  .card.intro,
+  .caption {
+    animation: none;
+  }
+}

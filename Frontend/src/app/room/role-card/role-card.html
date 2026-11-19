@@ -1,0 +1,28 @@
+@if (me(); as me) {
+  <div class="backdrop" [class.visible]="big()" (click)="dock()" aria-hidden="true"></div>
+
+  <button
+    type="button"
+    class="card"
+    [class.big]="big()"
+    [class.intro]="mode() === 'intro'"
+    [class.dead]="!me.alive"
+    [attr.aria-expanded]="big()"
+    [attr.aria-label]="big() ? 'Guardar tu carta' : 'Ver tu carta: ' + roleName(me.role)"
+    (click)="toggle()"
+  >
+    <app-card-art [role]="me.role" />
+    @if (!me.alive) {
+      <span class="dead-mark" aria-hidden="true">💀</span>
+    }
+  </button>
+
+  @if (big()) {
+    <div class="caption" aria-live="polite" animate.leave="leaving" (click)="dock()">
+      <p class="eyebrow">{{ mode() === 'intro' ? 'Tu personaje es…' : 'Tu personaje' }}</p>
+      <h2>{{ roleName(me.role) }}</h2>
+      <p class="description">{{ roleDescription(me.role) }}</p>
+      <p class="hint">Toca para {{ mode() === 'intro' ? 'empezar' : 'guardarla' }}</p>
+    </div>
+  }
+}
