@@ -59,6 +59,12 @@ describe('describePublic', () => {
     );
     expect(lines[0].text).toBe('Ana, el cazador, dispara a Bea (Lobo).');
   });
+
+  it('anuncia el empate', () => {
+    expect(describePublic({ kind: 'game_over', winner: 'draw', winnerIds: [] }, nameOf)).toEqual([
+      { icon: '🤝', text: 'Empate: no queda nadie con vida.' },
+    ]);
+  });
 });
 
 describe('describePrivate', () => {
@@ -66,6 +72,10 @@ describe('describePrivate', () => {
     expect(describePrivate({ kind: 'vision', night: 3, targetId: 'b', role: 'werewolf' }, nameOf).text).toBe(
       'Noche 3: Bea es Lobo.',
     );
+  });
+
+  it('avisa de que te han mirado la carta, sin decir quién', () => {
+    expect(describePrivate({ kind: 'seen', night: 2 }, nameOf).text).toBe('Noche 2: alguien ha mirado tu carta.');
   });
 
   it('describe las pociones de la bruja', () => {

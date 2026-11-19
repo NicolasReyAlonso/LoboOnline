@@ -76,15 +76,24 @@ li {
   min-width: 0;
 }
 
-.name,
+.name-text,
 .role {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+// El nombre se recorta, pero la etiqueta "tú" siempre se ve entera.
 .name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
   font-weight: 600;
+
+  .tag {
+    flex-shrink: 0;
+  }
 }
 
 .role {
@@ -123,6 +132,10 @@ li {
   &:hover {
     background: var(--surface-strong);
   }
+}
+
+.player.pickable + .voters {
+  border-color: var(--accent);
 }
 
 .player.selected + .voters,
