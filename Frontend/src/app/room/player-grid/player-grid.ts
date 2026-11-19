@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import type { PlayerView } from '@lobo/game/types';
 import { avatarColor, initial } from '../../core/avatar';
 import { isWolfRole, ROLE_ICON, roleName } from '../../core/roles';
@@ -40,4 +40,15 @@ export class PlayerGrid {
   });
 
   protected readonly ready = computed(() => new Set(this.readyIds() ?? []));
+
+  /** Jugadores cuya lista de votantes está desplegada. */
+  protected readonly expanded = signal<ReadonlySet<string>>(new Set());
+
+  protected toggleVoters(id: string): void {
+    this.expanded.update((current) => {
+      const next = new Set(current);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  }
 }

@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import type { ChatChannel } from '@lobo/protocol';
 import { avatarColor } from '../../core/avatar';
-import { CHANNEL_INFO, readableChannels, writeBlockReason } from '../../core/chat-rules';
+import { CHANNEL_INFO, readableChannels, writableChannels, writeBlockReason } from '../../core/chat-rules';
 import { GameService } from '../../core/game.service';
 
 @Component({
@@ -34,6 +34,10 @@ export class Chat {
   protected readonly visible = computed(() => this.game.messages().filter((m) => m.channel === this.active()));
   protected readonly blockReason = computed(() => writeBlockReason(this.game.state(), this.active()));
   protected readonly myId = computed(() => this.game.state()?.youId);
+  /** Solo "cambia" cuando cambian los canales, no con cada actualización del estado. */
+  private readonly writable = computed(() => writableChannels(this.game.state()), {
+    equal: (a, b) => a.join() === b.join(),
+  });
 
   private readonly lastSeen = signal<Record<ChatChannel, number>>({ general: 0, wolves: 0, dead: 0 });
   protected readonly unread = computed(() => {
@@ -53,15 +57,13 @@ export class Chat {
       untracked(() => this.lastSeen.update((seen) => ({ ...seen, [channel]: Math.max(seen[channel], last) })));
     });
 
-    // Al cambiar de fase, si no puedes escribir donde estás pero sí en otro canal, te lleva allí
-    // (p. ej. a los lobos al caer la noche).
+    // Cuando cambia el canal en el que puedes escribir (al caer la noche si eres lobo, al
+    // amanecer, al morir...), te lleva a él. Solo en ese momento: si después eliges otro
+    // canal para leerlo, te quedas en él aunque cambie la fase.
     effect(() => {
-      this.game.game()?.phaseId;
+      const writable = this.writable();
       untracked(() => {
-        const state = this.game.state();
-        if (!writeBlockReason(state, this.active())) return;
-        const writable = this.channels().find((c) => !writeBlockReason(state, c));
-        if (writable) this.chosen.set(writable);
+        if (writable.length > 0 && !writable.includes(this.active())) this.chosen.set(writable[0]);
       });
     });
 

@@ -3,7 +3,7 @@
     @let canPick = selectable().has(p.id);
     @let isSelected = selected().includes(p.id);
     @let pVoters = voters().get(p.id);
-    <li>
+    <li [class.has-voters]="!!pVoters">
       <button
         type="button"
         class="player"
@@ -31,9 +31,6 @@
           } @else {
             <span class="role muted">¿?</span>
           }
-          @if (pVoters) {
-            <span class="voters">← {{ pVoters.join(', ') }}</span>
-          }
         </span>
         <span class="badges">
           @if (p.lover) {
@@ -50,6 +47,26 @@
           }
         </span>
       </button>
+      @if (pVoters) {
+        @let open = expanded().has(p.id);
+        <button
+          type="button"
+          class="voters"
+          [class.open]="open"
+          [attr.aria-expanded]="open"
+          [attr.aria-label]="(open ? 'Ocultar' : 'Ver') + ' quién vota a ' + p.name"
+          (click)="toggleVoters(p.id)"
+        >
+          <span class="voters-names">
+            @if (open) {
+              Le {{ pVoters.length === 1 ? 'vota' : 'votan' }}: {{ pVoters.join(', ') }}
+            } @else {
+              ← {{ pVoters.join(', ') }}
+            }
+          </span>
+          <span class="chevron" aria-hidden="true">{{ open ? '▴' : '▾' }}</span>
+        </button>
+      }
     </li>
   }
 </ul>

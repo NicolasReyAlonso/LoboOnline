@@ -1,7 +1,7 @@
 import { DEFAULT_SETTINGS } from '@lobo/game/settings';
 import type { GameView, Phase, Role } from '@lobo/game/types';
 import type { RoomState } from '@lobo/protocol';
-import { readableChannels, writeBlockReason } from './chat-rules';
+import { readableChannels, writableChannels, writeBlockReason } from './chat-rules';
 
 function state(phase: Phase | null, role: Role = 'villager', alive = true): RoomState {
   const game = phase
@@ -42,6 +42,15 @@ describe('reglas del chat', () => {
     expect(readableChannels(dead)).toEqual(['general', 'wolves', 'dead']);
     expect(writeBlockReason(dead, 'general')).not.toBeNull();
     expect(writeBlockReason(dead, 'dead')).toBeNull();
+  });
+
+  it('se puede escribir como mucho en un canal, y para un muerto siempre es el mismo', () => {
+    expect(writableChannels(state('day_discussion'))).toEqual(['general']);
+    expect(writableChannels(state('night_seer'))).toEqual([]);
+    expect(writableChannels(state('night_seer', 'werewolf'))).toEqual(['wolves']);
+    for (const phase of ['night_wolves', 'dawn', 'day_discussion', 'day_vote', 'dusk'] as const) {
+      expect(writableChannels(state(phase, 'werewolf', false))).toEqual(['dead']);
+    }
   });
 
   it('al acabar la partida se pueden leer todos los canales', () => {

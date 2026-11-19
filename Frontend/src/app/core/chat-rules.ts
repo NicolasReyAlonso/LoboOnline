@@ -26,6 +26,11 @@ export function readableChannels(state: RoomState | null): ChatChannel[] {
   return channels;
 }
 
+/** Canales en los que puedes escribir ahora mismo (como mucho uno). */
+export function writableChannels(state: RoomState | null): ChatChannel[] {
+  return readableChannels(state).filter((c) => !writeBlockReason(state, c));
+}
+
 /** `null` si puedes escribir en el canal; si no, el motivo para mostrarlo. */
 export function writeBlockReason(state: RoomState | null, channel: ChatChannel): string | null {
   const game = state?.game;
