@@ -57,6 +57,7 @@ export function describePublic(entry: LogEntry, nameOf: NameOf): LogLine[] {
       ];
     }
     case 'game_over':
+      if (entry.winner === 'draw') return [{ icon: SIDE_INFO.draw.icon, text: 'Empate: no queda nadie con vida.' }];
       return [{ icon: SIDE_INFO[entry.winner].icon, text: `${SIDE_INFO[entry.winner].label}.` }];
   }
 }
@@ -73,6 +74,8 @@ export function describePrivate(entry: PrivateEntry, nameOf: NameOf): LogLine {
       return { icon: '💘', text: `Has unido a ${nameOf(entry.loverIds[0])} y ${nameOf(entry.loverIds[1])}.` };
     case 'vision':
       return { icon: '🔮', text: `Noche ${entry.night}: ${nameOf(entry.targetId)} es ${roleName(entry.role)}.` };
+    case 'seen':
+      return { icon: '👁️', text: `Noche ${entry.night}: alguien ha mirado tu carta.` };
     case 'protected':
       return { icon: '🛡️', text: `Noche ${entry.night}: proteges a ${nameOf(entry.targetId)}.` };
     case 'wolves_victim':

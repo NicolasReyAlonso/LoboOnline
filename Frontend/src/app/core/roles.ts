@@ -45,4 +45,5 @@ export const SIDE_INFO: Record<WinningSide, { icon: string; label: string }> = {
   village: { icon: '🏡', label: 'Gana el pueblo' },
   wolves: { icon: '🐺', label: 'Ganan los lobos' },
   lovers: { icon: '💘', label: 'Ganan los enamorados' },
+  draw: { icon: '🤝', label: 'Empate' },
 };

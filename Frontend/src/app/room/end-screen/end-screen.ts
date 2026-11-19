@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { avatarColor, initial } from '../../core/avatar';
 import { GameService } from '../../core/game.service';
-import { ROLE_ICON, roleName, SIDE_INFO } from '../../core/roles';
+import { isWolfRole, ROLE_ICON, roleName, SIDE_INFO } from '../../core/roles';
 
 @Component({
   selector: 'app-end-screen',
@@ -19,7 +19,24 @@ export class EndScreen {
   protected readonly result = computed(() => {
     const me = this.view().me;
     if (!me) return null;
-    return this.view().winner?.playerIds.includes(me.id) ? '¡Has ganado!' : 'Has perdido…';
+    const winner = this.view().winner;
+    if (winner?.side === 'draw') return 'Nadie gana esta vez.';
+    return winner?.playerIds.includes(me.id) ? '¡Has ganado!' : 'Has perdido…';
+  });
+
+  /** Por qué ha acabado, cuando no es evidente. */
+  protected readonly reason = computed(() => {
+    const v = this.view();
+    switch (v.winner?.side) {
+      case 'draw':
+        return 'No queda nadie con vida.';
+      case 'wolves':
+        return v.players.some((p) => p.alive && p.role && !isWolfRole(p.role))
+          ? 'Los lobos ya son tantos como el resto y al pueblo no le queda nada con lo que pararlos.'
+          : null;
+      default:
+        return null;
+    }
   });
 
   protected readonly rows = computed(() => {

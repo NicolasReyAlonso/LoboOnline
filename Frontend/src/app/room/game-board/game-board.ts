@@ -83,10 +83,15 @@ export class GameBoard {
     const lastNight = lastIndex(v.log, 'night_start');
     const lastVote = lastIndex(v.log, 'vote_result');
     const from = lastVote > lastNight ? lastVote : lastNight + 1;
-    return v.log
+    const lines = v.log
       .slice(from)
       .filter((e) => e.kind !== 'night_start' && e.kind !== 'game_over')
       .flatMap((e) => describePublic(e, (id) => this.game.nameOf(id)));
+    // Aviso privado de esta noche: la vidente te ha mirado la carta (solo te llega a ti).
+    if (lastNight > lastVote && v.privateLog.some((e) => e.kind === 'seen' && e.night === v.night)) {
+      lines.push({ icon: '👁️', text: 'Esta noche alguien ha mirado tu carta. Solo lo sabes tú.' });
+    }
+    return lines;
   });
 
   // Lo que ya se leyó en el lobby no cuenta como pendiente.

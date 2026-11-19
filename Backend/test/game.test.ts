@@ -31,6 +31,19 @@ describe('vidente', () => {
     expect(game.phase).toBe('night_wolves');
   });
 
+  it('a quien le miran la carta se le avisa al amanecer, sin decirle quién ha sido; a nadie más', () => {
+    const { game } = setupGame(['werewolf', 'seer', 'villager', 'villager', 'villager']);
+    game.act('p1', { type: 'see', target: 'p2' });
+    expect(game.viewFor('p2').privateLog).toEqual([]); // todavía es de noche
+    game.act('p0', { type: 'wolf_vote', target: 'p4' });
+    expect(game.phase).toBe('dawn');
+    expect(game.viewFor('p2').privateLog).toEqual([{ kind: 'seen', night: 1 }]);
+    for (const id of ['p0', 'p3', 'p4']) {
+      expect(game.viewFor(id).privateLog.some((e) => e.kind === 'seen')).toBe(false);
+    }
+    expect(game.viewFor('p2').players.find((p) => p.id === 'p1')?.role).toBeNull(); // no sabe quién ha sido
+  });
+
   it('no puede mirarse a sí misma ni actuar fuera de su turno', () => {
     const { game } = setupGame(['werewolf', 'seer', 'villager', 'villager']);
     expect(() => game.act('p1', { type: 'see', target: 'p1' })).toThrow(GameError);
@@ -181,18 +194,20 @@ describe('cazador', () => {
     expect(game.viewFor('p2').winner).toEqual({ side: 'village', playerIds: ['p1', 'p2', 'p3'] });
   });
 
-  it('si siendo el último aldeano se lleva al último lobo, gana el pueblo', () => {
+  it('si quedan el lobo y el cazador y el cazador se lleva al lobo, es empate', () => {
     const { game } = setupGame(['werewolf', 'hunter', 'villager']);
     game.act('p0', { type: 'wolf_vote', target: 'p2' });
     skipTo(game, 'day_vote');
     game.act('p0', { type: 'vote', target: 'p1' });
     game.act('p1', { type: 'vote', target: 'p0' });
     game.timeout(); // atardecer: empate, nadie muere
+    expect(game.phase).toBe('night_wolves'); // un lobo contra el cazador: la partida sigue
     game.act('p0', { type: 'wolf_vote', target: 'p1' });
     game.timeout(); // amanecer
     game.act('p1', { type: 'shoot', target: 'p0' });
     expect(game.phase).toBe('ended');
-    expect(game.viewFor('p1').winner).toEqual({ side: 'village', playerIds: ['p1', 'p2'] });
+    expect(game.viewFor('p1').winner).toEqual({ side: 'draw', playerIds: [] });
+    expect(game.viewFor('p1').log.at(-1)).toEqual({ kind: 'game_over', winner: 'draw', winnerIds: [] });
   });
 
   it('si no dispara a tiempo, pierde el disparo y la partida sigue', () => {
@@ -206,10 +221,10 @@ describe('cazador', () => {
   });
 
   it('linchado de día, dispara antes de la noche', () => {
-    const { game } = setupGame(['werewolf', 'hunter', 'villager', 'villager', 'villager']);
+    const { game } = setupGame(['werewolf', 'hunter', 'villager', 'villager', 'villager', 'villager']);
     game.act('p0', { type: 'wolf_vote', target: 'p2' });
     skipTo(game, 'day_vote');
-    for (const id of ['p0', 'p1', 'p3', 'p4']) game.act(id, { type: 'vote', target: 'p1' });
+    for (const id of ['p0', 'p1', 'p3', 'p4', 'p5']) game.act(id, { type: 'vote', target: 'p1' });
     game.timeout(); // atardecer
     expect(game.phase).toBe('hunter');
     game.act('p1', { type: 'shoot', target: 'p3' });
@@ -251,12 +266,56 @@ describe('votación de día', () => {
     expect(game.viewFor('p1').action).toMatchObject({ type: 'vote', hasVoted: true, myVote: 'p0' });
   });
 
+  it('si más de la mitad piden votar, el debate acaba tras una cuenta atrás de 10 s', () => {
+    const { game, now, tick } = setupGame(['werewolf', 'villager', 'villager', 'villager', 'villager', 'villager']);
+    game.act('p0', { type: 'wolf_vote', target: 'p5' });
+    skipTo(game, 'day_discussion'); // quedan 5 vivos: hace falta que lo pidan 3
+    const regular = game.viewFor('p1').endsAt;
+    expect(regular).toBe(now() + game.settings.durations.discussion * 1000);
+
+    game.act('p1', { type: 'ready', ready: true });
+    game.act('p2', { type: 'ready', ready: true });
+    expect(game.viewFor('p1').endsAt).toBe(regular); // 2 de 5 no es mayoría
+
+    game.act('p3', { type: 'ready', ready: true });
+    expect(game.viewFor('p1').endsAt).toBe(now() + 10_000);
+    expect(game.nextTimeoutAt).toBe(now() + 10_000);
+
+    // Otro más no reinicia la cuenta atrás.
+    tick(4_000);
+    game.act('p4', { type: 'ready', ready: true });
+    expect(game.viewFor('p1').endsAt).toBe(now() + 6_000);
+
+    // Si dejan de ser mayoría, se cancela y vuelve el tiempo normal.
+    game.act('p4', { type: 'ready', ready: false });
+    game.act('p3', { type: 'ready', ready: false });
+    expect(game.viewFor('p1').endsAt).toBe(regular);
+    expect(game.nextTimeoutAt).toBe(regular);
+
+    game.act('p3', { type: 'ready', ready: true });
+    expect(game.viewFor('p1').endsAt).toBe(now() + 10_000);
+    expect(game.phase).toBe('day_discussion');
+    game.timeout();
+    expect(game.phase).toBe('day_vote');
+  });
+
+  it('la cuenta atrás no alarga el debate si quedaba menos tiempo', () => {
+    const { game, now, tick } = setupGame(['werewolf', 'villager', 'villager', 'villager', 'villager']);
+    game.act('p0', { type: 'wolf_vote', target: 'p4' });
+    skipTo(game, 'day_discussion');
+    const regular = game.viewFor('p1').endsAt!;
+    tick(regular - now() - 3_000);
+    for (const id of ['p1', 'p2', 'p3']) game.act(id, { type: 'ready', ready: true });
+    expect(game.viewFor('p1').endsAt).toBe(regular);
+  });
+
   it('si todos piden votar se acaba el debate', () => {
     const { game } = setupGame(['werewolf', 'villager', 'villager', 'villager', 'villager']);
     game.act('p0', { type: 'wolf_vote', target: 'p4' });
     skipTo(game, 'day_discussion');
     for (const id of ['p0', 'p1', 'p2']) game.act(id, { type: 'ready', ready: true });
     expect(game.viewFor('p3').readyIds).toEqual(['p0', 'p1', 'p2']);
+    expect(game.phase).toBe('day_discussion');
     game.act('p3', { type: 'ready', ready: true });
     expect(game.phase).toBe('day_vote');
   });
@@ -270,18 +329,71 @@ describe('votación de día', () => {
 });
 
 describe('victoria', () => {
-  it('ganan los lobos cuando solo quedan lobos', () => {
+  it('ganan los lobos en cuanto son tantos como el resto', () => {
     const { game } = setupGame(['werewolf', 'villager', 'villager', 'villager']);
     game.act('p0', { type: 'wolf_vote', target: 'p1' });
     skipTo(game, 'day_vote');
     game.act('p0', { type: 'vote', target: 'p2' });
     game.act('p2', { type: 'vote', target: 'p0' });
     game.act('p3', { type: 'vote', target: 'p2' });
-    game.timeout(); // atardecer -> noche 2
-    game.act('p0', { type: 'wolf_vote', target: 'p3' });
-    game.timeout(); // amanecer
+    game.timeout(); // atardecer: queda un lobo contra un aldeano
     expect(game.phase).toBe('ended');
     expect(game.viewFor('p1').winner).toEqual({ side: 'wolves', playerIds: ['p0'] });
+  });
+
+  it('con dos lobos, al quedar dos aldeanos ganan los lobos al amanecer', () => {
+    const { game } = setupGame(['werewolf', 'werewolf', 'villager', 'villager', 'villager']);
+    game.act('p0', { type: 'wolf_vote', target: 'p2' });
+    game.act('p1', { type: 'wolf_vote', target: 'p2' });
+    game.timeout(); // amanecer
+    expect(game.viewFor('p3').winner).toEqual({ side: 'wolves', playerIds: ['p0', 'p1'] });
+  });
+
+  it('si la bruja aún tiene pociones la partida sigue; sin pociones, ganan los lobos', () => {
+    const withPotions = setupGame(['werewolf', 'witch', 'villager', 'villager']).game;
+    withPotions.act('p0', { type: 'wolf_vote', target: 'p2' });
+    withPotions.act('p1', { type: 'witch', heal: false, poison: null });
+    skipTo(withPotions, 'day_vote');
+    for (const id of ['p0', 'p1']) withPotions.act(id, { type: 'vote', target: 'p3' });
+    withPotions.act('p3', { type: 'vote', target: 'p0' });
+    withPotions.timeout(); // atardecer: lobo contra bruja con las dos pociones
+    expect(withPotions.phase).toBe('night_wolves');
+
+    const { game } = setupGame(['werewolf', 'witch', 'villager', 'villager', 'villager']);
+    game.act('p0', { type: 'wolf_vote', target: 'p2' });
+    game.act('p1', { type: 'witch', heal: true, poison: 'p3' }); // gasta las dos
+    skipTo(game, 'day_vote');
+    for (const id of ['p0', 'p1', 'p2']) game.act(id, { type: 'vote', target: 'p4' });
+    game.act('p4', { type: 'vote', target: 'p0' });
+    game.timeout(); // atardecer: lobo contra bruja y aldeano
+    expect(game.phase).toBe('night_wolves');
+    game.act('p0', { type: 'wolf_vote', target: 'p2' });
+    game.timeout(); // turno fantasma de la bruja
+    game.timeout(); // amanecer: lobo contra bruja sin pociones
+    expect(game.viewFor('p1').winner).toEqual({ side: 'wolves', playerIds: ['p0'] });
+  });
+
+  it('con el protector o el cazador vivos la partida sigue aunque los lobos igualen', () => {
+    for (const role of ['protector', 'hunter'] as const) {
+      const { game } = setupGame(['werewolf', role, 'villager', 'villager']);
+      if (role === 'protector') game.act('p1', { type: 'protect', target: 'p1' });
+      game.act('p0', { type: 'wolf_vote', target: 'p2' });
+      skipTo(game, 'day_vote');
+      for (const id of ['p0', 'p1']) game.act(id, { type: 'vote', target: 'p3' });
+      game.act('p3', { type: 'vote', target: 'p0' });
+      game.timeout(); // atardecer: lobo contra protector / cazador
+      expect(game.phase).not.toBe('ended');
+      expect(game.night).toBe(2);
+    }
+  });
+
+  it('un lobo enamorado de alguien del pueblo no cuenta para la manada', () => {
+    const { game } = setupGame(['werewolf', 'werewolf', 'cupid', 'villager', 'villager']);
+    game.act('p2', { type: 'cupid', targets: ['p0', 'p3'] });
+    game.act('p0', { type: 'wolf_vote', target: 'p4' });
+    game.act('p1', { type: 'wolf_vote', target: 'p4' });
+    game.timeout(); // amanecer: 2 lobos de 4 vivos, pero uno está enamorado de un aldeano
+    expect(game.phase).toBe('day_discussion');
   });
 
   it('gana el pueblo al linchar al último lobo y al final todos ven todos los roles', () => {

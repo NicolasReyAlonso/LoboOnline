@@ -96,9 +96,16 @@
       }
       @case ('ready') {
         <h2>🗣️ ¡A debatir!</h2>
-        <p class="muted">
-          Hablad en el chat. Si todos pedís votar, se pasa a la votación sin esperar al final del tiempo.
-          ({{ readyCount() }}/{{ aliveCount() }} quieren votar)
+        @if (readyCount() >= readyNeeded()) {
+          <p class="countdown-note">⏳ La mayoría quiere votar: la votación empieza en unos segundos.</p>
+        } @else {
+          <p class="muted">
+            Hablad en el chat. Si más de la mitad pedís votar, la votación empezará a los {{ countdownSeconds }}
+            segundos.
+          </p>
+        }
+        <p class="muted small">
+          {{ readyCount() }} de {{ aliveCount() }} quieren votar (hacen falta {{ readyNeeded() }}).
         </p>
         <button class="btn btn-block" [class.btn-primary]="!a.ready" (click)="setReady(!a.ready)">
           {{ a.ready ? 'Mejor esperar un poco más' : '✋ Quiero votar ya' }}

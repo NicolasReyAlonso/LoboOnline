@@ -65,6 +65,27 @@ describe('Room', () => {
     expect(game.phase).toBe('dawn');
   });
 
+  it('si más de la mitad piden votar, la votación empieza a los 10 segundos', () => {
+    const { room } = makeRoom();
+    const players = ['Ana', 'Bea', 'Carla', 'Dani'].map((n, i) => room.join(n, `s${i}`));
+    room.updateSettings(players[0]!.id, { maxWolves: 1, roles: {} });
+    room.start(players[0]!.id);
+    const game = room.currentGame!;
+    const wolf = players.find((p) => game.playerInfo(p.id)?.role === 'werewolf')!;
+    const [victim, ...rest] = players.filter((p) => p !== wolf);
+    room.act(wolf.id, { type: 'wolf_vote', target: victim!.id });
+    vi.advanceTimersByTime(game.settings.durations.announcement * 1000 + 1);
+    expect(game.phase).toBe('day_discussion');
+
+    // Quedan 3 vivos: con 2 ya es mayoría.
+    room.act(rest[0]!.id, { type: 'ready', ready: true });
+    room.act(rest[1]!.id, { type: 'ready', ready: true });
+    vi.advanceTimersByTime(9_900);
+    expect(game.phase).toBe('day_discussion');
+    vi.advanceTimersByTime(200);
+    expect(game.phase).toBe('day_vote');
+  });
+
   it('si el anfitrión abandona en mitad de la partida, el cargo pasa a otro', () => {
     const { room } = makeRoom();
     const players = ['Ana', 'Bea', 'Carla', 'Dani'].map((n, i) => room.join(n, `s${i}`));

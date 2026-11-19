@@ -2,6 +2,9 @@
   <div class="banner">
     <span class="side-icon" aria-hidden="true">{{ side().icon }}</span>
     <h2>{{ side().label }}</h2>
+    @if (reason(); as why) {
+      <p class="muted small">{{ why }}</p>
+    }
     @if (result(); as r) {
       <p class="result">{{ r }}</p>
     }

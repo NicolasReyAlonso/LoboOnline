@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, model, signal, untracked } from '@angular/core';
-import { isNightPhase, type GameAction } from '@lobo/game/types';
+import { isNightPhase, VOTE_COUNTDOWN_SECONDS, type GameAction } from '@lobo/game/types';
 import { GameService } from '../../core/game.service';
 
 /**
@@ -25,6 +25,9 @@ export class ActionPanel {
   protected readonly target = computed(() => this.selected()[0] ?? null);
   protected readonly aliveCount = computed(() => this.view().players.filter((p) => p.alive).length);
   protected readonly readyCount = computed(() => this.view().readyIds?.length ?? 0);
+  /** Más de la mitad de los vivos. */
+  protected readonly readyNeeded = computed(() => Math.floor(this.aliveCount() / 2) + 1);
+  protected readonly countdownSeconds = VOTE_COUNTDOWN_SECONDS;
 
   protected readonly wolfVotes = computed(() => {
     const a = this.action();

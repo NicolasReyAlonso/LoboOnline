@@ -69,7 +69,8 @@ rellenan el resto.
 
 1. `night_cupid`: solo la primera noche. Cupido enamora a dos jugadores, que se conocen y ven el rol del otro.
 2. `night_protector`: protege a alguien de los lobos. No puede repetir la misma persona dos noches seguidas.
-3. `night_seer`: la vidente ve el rol de un jugador.
+3. `night_seer`: la vidente ve el rol de un jugador. A ese jugador (y solo a él) se le avisa al amanecer de que le han
+   mirado la carta, sin decirle quién.
 4. `night_wolves`: los lobos votan una víctima. Si todos coinciden, se pasa al siguiente paso al momento; si se acaba el
    tiempo, muere el más votado (los empates se deciden al azar).
 5. `night_witch`: la bruja ve a la víctima y puede usar la poción de vida y/o la de muerte (cada una, una vez por partida).
@@ -81,7 +82,9 @@ pero termina tras un tiempo aleatorio. Así nadie puede deducir que la vidente h
 
 - `dawn`: se anuncian los muertos de la noche. No se dice la causa, para no delatar a la bruja.
 - `hunter`: si ha muerto el cazador, dispara a alguien (en cualquier momento de la partida).
-- `day_discussion`: debate. Termina por tiempo o cuando todos los vivos pulsan "listo".
+- `day_discussion`: debate. Termina por tiempo, o antes si los vivos piden votar: si lo piden **más de la mitad**, el
+  debate acaba tras una cuenta atrás de 10 segundos (`VOTE_COUNTDOWN_SECONDS`, se cancela si dejan de ser mayoría); si
+  lo piden todos, al momento.
 - `day_vote`: votación pública y modificable. Termina cuando han votado todos o se acaba el tiempo. Gana la mayoría
   simple; el voto en blanco cuenta como una opción más, y un empate no lincha a nadie.
 - `dusk`: se anuncia el resultado de la votación y vuelve a caer la noche.
@@ -91,10 +94,14 @@ bando y ganan si son los dos últimos vivos.
 
 **Victoria** (se comprueba después de cada anuncio y de cada disparo del cazador):
 
+- No queda nadie vivo: **empate** (`draw`). Por ejemplo, quedan el lobo y el cazador, y el cazador se lleva por
+  delante al lobo.
 - Pareja mixta de enamorados como únicos supervivientes: ganan **los enamorados**.
-- No queda ningún lobo: gana **el pueblo**, aunque no quede nadie vivo (por ejemplo, si el cazador era el último
-  aldeano y se lleva por delante al último lobo).
-- Solo quedan lobos: ganan **los lobos**.
+- No queda ningún lobo: gana **el pueblo**.
+- Los lobos son **tantos o más** que el resto: ganan **los lobos**, porque ya controlan la votación. Un lobo enamorado de
+  alguien del pueblo no cuenta para la manada.
+  La excepción es que al pueblo le quede un poder con el que aún pueda darle la vuelta: el **cazador** vivo, la
+  **bruja** viva con alguna poción o el **protector** vivo. Entonces la partida sigue.
 
 ## Protocolo (Socket.IO)
 
@@ -187,8 +194,8 @@ Envía solo lo que cambie:
   readyIds: [...] | null,                                    // solo en day_discussion
   hunterId: '...' | null,                                    // solo en la fase hunter
   log: LogEntry[],          // historial público: muertes, votaciones, disparos...
-  privateLog: PrivateEntry[], // solo tuyo: visiones, pareja, víctima de los lobos...
-  winner: { side: 'village' | 'wolves' | 'lovers', playerIds } | null
+  privateLog: PrivateEntry[], // solo tuyo: visiones, pareja, víctima de los lobos, "te han mirado la carta"...
+  winner: { side: 'village' | 'wolves' | 'lovers' | 'draw', playerIds } | null  // draw: playerIds vacío
 }
 ```
 
