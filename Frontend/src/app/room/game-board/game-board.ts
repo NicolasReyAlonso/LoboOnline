@@ -10,6 +10,7 @@ import { Chat } from '../chat/chat';
 import { EndScreen } from '../end-screen/end-screen';
 import { GameLog } from '../game-log/game-log';
 import { PlayerGrid } from '../player-grid/player-grid';
+import { RoleCard } from '../role-card/role-card';
 
 type Tab = 'game' | 'chat' | 'log';
 
@@ -24,7 +25,7 @@ function lastIndex(log: readonly LogEntry[], kind: LogEntry['kind']): number {
  */
 @Component({
   selector: 'app-game-board',
-  imports: [Countdown, ActionPanel, PlayerGrid, Chat, GameLog, EndScreen],
+  imports: [Countdown, ActionPanel, PlayerGrid, Chat, GameLog, EndScreen, RoleCard],
   templateUrl: './game-board.html',
   styleUrl: './game-board.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

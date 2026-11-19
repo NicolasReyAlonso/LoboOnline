@@ -57,8 +57,10 @@
     rotate 0.75s var(--ease),
     translate 0.2s ease;
 
-  &:not(.big):hover {
-    translate: 0 -6px;
+  @media (hover: hover) {
+    &:not(.big):hover {
+      translate: 0 -6px;
+    }
   }
 
   &.big {

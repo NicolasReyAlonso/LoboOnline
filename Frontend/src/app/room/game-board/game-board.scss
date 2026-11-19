@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  // Hueco para la barra de pestañas del móvil.
-  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  // Hueco para la barra de pestañas del móvil y la carta que asoma por encima.
+  padding-bottom: calc(108px + env(safe-area-inset-bottom));
 }
 
 .phase {
@@ -121,16 +121,20 @@
   bottom: 0;
   left: 0;
   z-index: 20;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   padding: 6px max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom))
     max(8px, env(safe-area-inset-left));
   border-top: 1px solid var(--border);
   background: var(--bg);
 
+  .hand-slot {
+    flex: 0 0 76px;
+  }
+
   button {
     position: relative;
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: center;
     gap: 2px;
@@ -170,8 +174,9 @@
 
 // En pantallas anchas se ve todo a la vez y sobran las pestañas.
 @media (min-width: 960px) {
+  // La carta queda abajo a la izquierda: se deja sitio para poder ver lo que tapa.
   .board {
-    padding-bottom: 24px;
+    padding-bottom: 168px;
   }
 
   .layout {

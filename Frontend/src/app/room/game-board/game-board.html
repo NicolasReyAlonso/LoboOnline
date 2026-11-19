@@ -72,7 +72,13 @@
     </section>
   </div>
 
+  <app-role-card />
+
   <nav class="tabbar" aria-label="Secciones">
+    @if (me()) {
+      <!-- Hueco para tu carta, que asoma por encima de la barra. -->
+      <span class="hand-slot" aria-hidden="true"></span>
+    }
     <button type="button" [class.active]="tab() === 'game'" (click)="tab.set('game')">
       <span aria-hidden="true">🎴</span> Partida
     </button>
