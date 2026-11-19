@@ -58,6 +58,7 @@ export class Room {
   private readonly removalTimers = new Map<string, Timer>();
   private phaseTimer: Timer | null = null;
   private phaseTimerId = -1;
+  private phaseTimerAt: number | null = null;
   private emptyTimer: Timer | null = null;
 
   constructor(
@@ -378,11 +379,15 @@ export class Room {
       this.clearPhaseTimer();
       return;
     }
-    if (game.phaseId === this.phaseTimerId) return;
+    // Se reprograma si cambia la fase o si, dentro de la misma fase, cambia el
+    // final (la cuenta atrás de "pasar a votar").
+    const at = game.nextTimeoutAt;
+    if (game.phaseId === this.phaseTimerId && at === this.phaseTimerAt) return;
     this.clearPhaseTimer();
     const phaseId = game.phaseId;
     this.phaseTimerId = phaseId;
-    const delay = Math.max(0, (game.nextTimeoutAt ?? Date.now()) - Date.now());
+    this.phaseTimerAt = at;
+    const delay = Math.max(0, (at ?? Date.now()) - Date.now());
     this.phaseTimer = setTimeout(() => {
       this.phaseTimer = null;
       if (this.game === game && game.timeout(phaseId)) this.afterGameChange();
@@ -393,6 +398,7 @@ export class Room {
     if (this.phaseTimer) clearTimeout(this.phaseTimer);
     this.phaseTimer = null;
     this.phaseTimerId = -1;
+    this.phaseTimerAt = null;
   }
 
   private clearRemovalTimer(playerId: string): void {

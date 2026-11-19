@@ -31,8 +31,11 @@ export interface Composition {
 
 export type Team = 'village' | 'wolves';
 
-/** Quién gana: el pueblo, los lobos o una pareja de enamorados mixta. */
-export type WinningSide = 'village' | 'wolves' | 'lovers';
+/**
+ * Cómo acaba la partida: gana el pueblo, los lobos o una pareja de enamorados
+ * mixta, o hay empate (`draw`) porque no queda nadie vivo.
+ */
+export type WinningSide = 'village' | 'wolves' | 'lovers' | 'draw';
 
 // ---------------------------------------------------------------------------
 // Fases
@@ -50,6 +53,12 @@ export type Phase =
   | 'day_vote' // Votación para linchar
   | 'dusk' // Atardecer: se anuncia el resultado de la votación
   | 'ended';
+
+/**
+ * Cuando más de la mitad de los vivos piden votar, el debate se acorta a esta
+ * cuenta atrás (si quedaba más tiempo).
+ */
+export const VOTE_COUNTDOWN_SECONDS = 10;
 
 export function isNightPhase(phase: Phase): phase is NightPhase {
   return (NIGHT_PHASES as readonly Phase[]).includes(phase);
@@ -149,6 +158,8 @@ export type PrivateEntry =
   | { kind: 'lovers'; partnerId: string; partnerRole: Role }
   | { kind: 'cupid'; loverIds: [string, string] }
   | { kind: 'vision'; night: number; targetId: string; role: Role }
+  /** La vidente ha mirado tu carta esa noche (no se dice quién es). Llega al amanecer. */
+  | { kind: 'seen'; night: number }
   | { kind: 'protected'; night: number; targetId: string }
   | { kind: 'wolves_victim'; night: number; targetId: string | null }
   | { kind: 'witch'; night: number; healedId: string | null; poisonedId: string | null };
@@ -190,7 +201,10 @@ export interface GameView {
   action: PendingAction | null;
   /** Votos de la votación en curso (públicos). Solo en `day_vote`. */
   votes: Record<string, string | null> | null;
-  /** Jugadores que quieren pasar a votar. Solo en `day_discussion`. */
+  /**
+   * Jugadores que quieren pasar a votar. Solo en `day_discussion`. Si son más de
+   * la mitad de los vivos, `endsAt` pasa a ser una cuenta atrás corta.
+   */
   readyIds: string[] | null;
   /** Cazador que está disparando. Solo en la fase `hunter`. */
   hunterId: string | null;

@@ -18,6 +18,7 @@ import {
   type PublicDeathCause,
   type Role,
   type WinningSide,
+  VOTE_COUNTDOWN_SECONDS,
 } from './types.js';
 
 export interface GamePlayerInit {
@@ -53,6 +54,8 @@ interface NightState {
   wolfVotes: Map<string, string>;
   victimId: string | null;
   protectedId: string | null;
+  /** A quién ha mirado la carta la vidente (se le avisa al amanecer). */
+  seenId: string | null;
   healed: boolean;
   poisonedId: string | null;
 }
@@ -64,6 +67,7 @@ const newNight = (): NightState => ({
   wolfVotes: new Map(),
   victimId: null,
   protectedId: null,
+  seenId: null,
   healed: false,
   poisonedId: null,
 });
@@ -105,6 +109,8 @@ export class Game {
   private _day = 0;
   /** Fin "oficial" de la fase, el que ven los jugadores. */
   private endsAt: number | null = null;
+  /** Fin normal de la fase, sin la cuenta atrás de "pasar a votar". */
+  private regularEndsAt: number | null = null;
   /** Cuándo hay que llamar a timeout(); en pasos fantasma es antes que endsAt. */
   private deadline: number | null = null;
   /** El rol de este paso nocturno está muerto: nadie actúa, solo se simula. */
@@ -326,6 +332,7 @@ export class Game {
     const t = this.aliveTarget(targetId);
     if (t.id === p.id) throw new GameError('invalid_target', 'No puedes mirar tu propia carta.');
     this.addPrivate(p.id, { kind: 'vision', night: this._night, targetId: t.id, role: t.role });
+    this.nightState.seenId = t.id;
     this.nextNightStep();
   }
 
@@ -396,11 +403,30 @@ export class Game {
     if (this.alivePlayers().every((a) => this.dayVotes.has(a.id))) this.resolveVote();
   }
 
+  /**
+   * Pedir (o dejar de pedir) que se vote ya. Si lo piden todos se vota al
+   * momento; si lo piden más de la mitad, el debate acaba tras una cuenta atrás
+   * corta, que se cancela si dejan de ser mayoría.
+   */
   private actReady(p: GamePlayer, ready: boolean): void {
     if (this._phase !== 'day_discussion' || !p.alive) throw new GameError('not_your_turn', 'Ahora no se puede.');
     if (ready) this.readyIds.add(p.id);
     else this.readyIds.delete(p.id);
-    if (this.alivePlayers().every((a) => this.readyIds.has(a.id))) this.enterPhase('day_vote');
+
+    const alive = this.alivePlayers().length;
+    if (this.readyIds.size >= alive) {
+      this.enterPhase('day_vote');
+      return;
+    }
+    const regular = this.regularEndsAt ?? this.now();
+    let endsAt = regular;
+    if (this.readyIds.size * 2 > alive) {
+      // Si la cuenta atrás ya estaba en marcha, sigue; si no, empieza ahora.
+      const running = this.endsAt !== null && this.endsAt < regular;
+      endsAt = running ? (this.endsAt as number) : Math.min(regular, this.now() + VOTE_COUNTDOWN_SECONDS * 1000);
+    }
+    this.endsAt = endsAt;
+    this.deadline = endsAt;
   }
 
   // -------------------------------------------------------------------------
@@ -481,6 +507,7 @@ export class Game {
     if (ns.victimId && ns.victimId !== ns.protectedId && !ns.healed) kills.push([ns.victimId, 'wolves']);
     if (ns.poisonedId) kills.push([ns.poisonedId, 'poison']);
     this.lastProtectedId = ns.protectedId;
+    if (ns.seenId) this.addPrivate(ns.seenId, { kind: 'seen', night: this._night });
 
     const deaths = this.killAll(kills);
     this._day++;
@@ -548,19 +575,38 @@ export class Game {
   }
 
   /**
-   * Si no queda ningún lobo gana el pueblo, aunque no quede nadie vivo (p. ej.
-   * el cazador, último aldeano, se lleva por delante al último lobo).
+   * - Si no queda nadie vivo es empate (p. ej. el cazador, último aldeano, se
+   *   lleva por delante al último lobo).
+   * - Una pareja mixta gana si son los dos últimos.
+   * - Si no queda ningún lobo, gana el pueblo.
+   * - Los lobos ganan en cuanto son al menos tantos como el resto, porque ya
+   *   controlan la votación. Salvo que al pueblo le quede algún poder con el
+   *   que darle la vuelta (ver `villageCanTurnItAround`).
    */
   private checkWin(): WinningSide | null {
     const alive = this.alivePlayers();
+    if (alive.length === 0) return 'draw';
     if (alive.length === 2) {
       const [a, b] = alive as [GamePlayer, GamePlayer];
       if (a.loverId === b.id && isWolf(a.role) !== isWolf(b.role)) return 'lovers';
     }
-    const wolves = alive.filter((p) => isWolf(p.role)).length;
-    if (wolves === 0) return 'village';
-    if (wolves === alive.length) return 'wolves';
+    if (!alive.some((p) => isWolf(p.role))) return 'village';
+    // Un lobo enamorado de alguien del pueblo ya no juega con la manada.
+    const pack = alive.filter((p) => this.sideOf(p) === 'wolves').length;
+    if (pack * 2 >= alive.length && !this.villageCanTurnItAround(alive)) return 'wolves';
     return null;
+  }
+
+  /**
+   * Poderes con los que el pueblo aún puede ganar aunque los lobos sean
+   * mayoría: el cazador (dispara al morir), la bruja si le queda alguna poción
+   * y el protector.
+   */
+  private villageCanTurnItAround(alive: GamePlayer[]): boolean {
+    return alive.some(
+      (p) =>
+        p.role === 'hunter' || p.role === 'protector' || (p.role === 'witch' && (this.healPotion || this.poisonPotion)),
+    );
   }
 
   private finish(side: WinningSide): void {
@@ -589,12 +635,14 @@ export class Game {
     if (phase === 'day_discussion') this.readyIds.clear();
     if (phase === 'ended') {
       this.endsAt = null;
+      this.regularEndsAt = null;
       this.deadline = null;
       return;
     }
     const now = this.now();
     const real = this.durationOf(phase) * 1000;
     this.endsAt = now + real;
+    this.regularEndsAt = this.endsAt;
     // En un paso fantasma el contador público es el normal, pero acaba antes (como si el rol hubiese actuado).
     this.deadline = phantom ? now + Math.min(real, this.phantomDelayMs()) : this.endsAt;
   }
