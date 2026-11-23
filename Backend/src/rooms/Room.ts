@@ -259,9 +259,10 @@ export class Room {
       case 'general':
         return true;
       case 'wolves':
-        return info.alive ? isWolf(info.role) : game.settings.deadSeeEverything;
+        return info.alive ? isWolf(info.role) : !info.pendingShot && game.settings.deadSeeEverything;
       case 'dead':
-        return !info.alive;
+        // El cazador no entra con los muertos hasta haber disparado: le chivarían a quién apuntar.
+        return !info.alive && !info.pendingShot;
     }
   }
 
@@ -277,7 +278,7 @@ export class Room {
       case 'wolves':
         return info.alive && isWolf(info.role) && night;
       case 'dead':
-        return !info.alive;
+        return !info.alive && !info.pendingShot;
     }
   }
 

@@ -195,8 +195,11 @@ export interface GameView {
   day: number;
   /** Lo que se sabe del reparto (sin el número exacto de lobos). */
   composition: Composition;
-  /** `null` si quien mira no participa en la partida. */
-  me: { id: string; role: Role; alive: boolean; loverId: string | null } | null;
+  /**
+   * `null` si quien mira no participa en la partida. `pendingShot`: eres un
+   * cazador muerto que aún no ha disparado (todavía no ves lo que ven los muertos).
+   */
+  me: { id: string; role: Role; alive: boolean; loverId: string | null; pendingShot: boolean } | null;
   players: PlayerView[];
   action: PendingAction | null;
   /** Votos de la votación en curso (públicos). Solo en `day_vote`. */

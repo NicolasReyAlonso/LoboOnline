@@ -180,9 +180,17 @@ export class Game {
     return this.deadline;
   }
 
-  playerInfo(id: string): { alive: boolean; role: Role } | null {
+  playerInfo(id: string): { alive: boolean; role: Role; pendingShot: boolean } | null {
     const p = this.byId.get(id);
-    return p ? { alive: p.alive, role: p.role } : null;
+    return p ? { alive: p.alive, role: p.role, pendingShot: this.hasPendingShot(p) } : null;
+  }
+
+  /**
+   * Cazador muerto que aún no ha disparado. Hasta que dispare (o pierda el
+   * disparo) no recibe la información de los muertos: si no, sabría a quién apuntar.
+   */
+  private hasPendingShot(p: GamePlayer): boolean {
+    return !p.alive && this.pendingHunters.includes(p.id);
   }
 
   // -------------------------------------------------------------------------
@@ -268,7 +276,9 @@ export class Game {
   /** Estado de la partida tal y como lo ve `viewerId` (sin información secreta ajena). */
   viewFor(viewerId: string | null): GameView {
     const me = viewerId ? (this.byId.get(viewerId) ?? null) : null;
-    const omniscient = this._phase === 'ended' || (me !== null && !me.alive && this.settings.deadSeeEverything);
+    const omniscient =
+      this._phase === 'ended' ||
+      (me !== null && !me.alive && !this.hasPendingShot(me) && this.settings.deadSeeEverything);
     const known = this.knownRoles(me);
 
     const players: PlayerView[] = this.players.map((p) => ({
@@ -286,7 +296,9 @@ export class Game {
       night: this._night,
       day: this._day,
       composition: structuredClone(this.composition),
-      me: me ? { id: me.id, role: me.role, alive: me.alive, loverId: me.loverId } : null,
+      me: me
+        ? { id: me.id, role: me.role, alive: me.alive, loverId: me.loverId, pendingShot: this.hasPendingShot(me) }
+        : null,
       players,
       action: this.pendingActionFor(me),
       votes: this._phase === 'day_vote' ? Object.fromEntries(this.dayVotes) : null,

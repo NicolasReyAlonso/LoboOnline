@@ -3,11 +3,11 @@ import type { GameView, Phase, Role } from '@lobo/game/types';
 import type { RoomState } from '@lobo/protocol';
 import { readableChannels, writableChannels, writeBlockReason } from './chat-rules';
 
-function state(phase: Phase | null, role: Role = 'villager', alive = true): RoomState {
+function state(phase: Phase | null, role: Role = 'villager', alive = true, pendingShot = false): RoomState {
   const game = phase
     ? ({
         phase,
-        me: { id: 'me', role, alive, loverId: null },
+        me: { id: 'me', role, alive, loverId: null, pendingShot },
       } as GameView)
     : null;
   return {
@@ -51,6 +51,16 @@ describe('reglas del chat', () => {
     for (const phase of ['night_wolves', 'dawn', 'day_discussion', 'day_vote', 'dusk'] as const) {
       expect(writableChannels(state(phase, 'werewolf', false))).toEqual(['dead']);
     }
+  });
+
+  it('el cazador muerto no lee la manada ni a los muertos hasta haber disparado', () => {
+    for (const phase of ['dawn', 'dusk', 'hunter'] as const) {
+      const hunter = state(phase, 'hunter', false, true);
+      expect(readableChannels(hunter)).toEqual(['general']);
+      expect(writableChannels(hunter)).toEqual([]);
+      expect(writeBlockReason(hunter, 'dead')).toContain('disparar');
+    }
+    expect(readableChannels(state('day_discussion', 'hunter', false, false))).toEqual(['general', 'wolves', 'dead']);
   });
 
   it('al acabar la partida se pueden leer todos los canales', () => {

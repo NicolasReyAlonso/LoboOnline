@@ -113,4 +113,43 @@ describe('Room', () => {
     const receivers = sent.filter((m) => m.event === 'chat:message').map((m) => m.socketId);
     expect(receivers).toEqual([victim.socketId]);
   });
+
+  it('el cazador no lee la manada ni a los muertos hasta haber disparado', () => {
+    const { room, sent } = makeRoom();
+    const players = ['Ana', 'Bea', 'Carla', 'Dani', 'Eva', 'Fran'].map((n, i) => room.join(n, `s${i}`));
+    room.updateSettings(players[0]!.id, { maxWolves: 1, roles: { hunter: 1 } });
+    room.start(players[0]!.id);
+    const game = room.currentGame!;
+    const roleOf = (id: string) => game.playerInfo(id)!.role;
+    const wolf = players.find((p) => roleOf(p.id) === 'werewolf')!;
+    const hunter = players.find((p) => roleOf(p.id) === 'hunter')!;
+    const [ghost, target, ...others] = players.filter((p) => roleOf(p.id) === 'villager');
+
+    // Noche 1: los lobos hablan y matan a un aldeano.
+    room.sendChat(wolf.id, 'wolves', 'a por el cazador mañana');
+    room.act(wolf.id, { type: 'wolf_vote', target: ghost!.id });
+    vi.advanceTimersByTime(game.settings.durations.announcement * 1000 + 1);
+    expect(game.phase).toBe('day_discussion');
+
+    // Día 1: el pueblo lincha al cazador.
+    vi.advanceTimersByTime(game.settings.durations.discussion * 1000 + 1);
+    for (const p of [wolf, target!, ...others, hunter]) room.act(p.id, { type: 'vote', target: hunter.id });
+    expect(game.phase).toBe('dusk'); // han votado todos
+
+    const channels = () => new Set(room.chatHistoryFor(hunter.id).map((m) => m.channel));
+    expect(channels()).toEqual(new Set());
+    expect(() => room.sendChat(hunter.id, 'dead', 'hola')).toThrow(/No puedes escribir/);
+    sent.length = 0;
+    room.sendChat(ghost!.id, 'dead', `el lobo es ${wolf.name}`);
+    expect(sent.filter((m) => m.event === 'chat:message').map((m) => m.socketId)).toEqual([ghost!.socketId]);
+
+    vi.advanceTimersByTime(game.settings.durations.announcement * 1000 + 1);
+    expect(game.phase).toBe('hunter');
+    expect(channels()).toEqual(new Set());
+
+    room.act(hunter.id, { type: 'shoot', target: target!.id });
+    expect(game.phase).toBe('night_wolves');
+    expect(channels()).toEqual(new Set(['wolves', 'dead']));
+    room.sendChat(hunter.id, 'dead', 'ya está');
+  });
 });

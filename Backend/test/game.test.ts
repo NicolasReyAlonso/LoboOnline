@@ -231,6 +231,32 @@ describe('cazador', () => {
     expect(game.phase).toBe('night_wolves');
     expect(game.night).toBe(2);
   });
+
+  it('no ve los roles de los demás hasta haber disparado', () => {
+    const { game } = setupGame(['werewolf', 'hunter', 'villager', 'villager', 'villager']);
+    game.act('p0', { type: 'wolf_vote', target: 'p1' });
+    expect(game.phase).toBe('dawn');
+    expect(game.viewFor('p1').me?.pendingShot).toBe(true);
+    expect(game.viewFor('p1').players.map((p) => p.role)).toEqual([null, 'hunter', null, null, null]);
+
+    game.timeout(); // amanecer
+    expect(game.phase).toBe('hunter');
+    expect(game.viewFor('p1').players.map((p) => p.role)).toEqual([null, 'hunter', null, null, null]);
+
+    game.act('p1', { type: 'shoot', target: 'p2' });
+    const after = game.viewFor('p1');
+    expect(after.me?.pendingShot).toBe(false);
+    expect(after.players.map((p) => p.role)).toEqual(['werewolf', 'hunter', 'villager', 'villager', 'villager']);
+  });
+
+  it('si pierde el disparo, a partir de entonces lo ve todo como cualquier muerto', () => {
+    const { game } = setupGame(['werewolf', 'hunter', 'villager', 'villager', 'villager']);
+    game.act('p0', { type: 'wolf_vote', target: 'p1' });
+    skipTo(game, 'hunter');
+    game.timeout(); // no dispara
+    expect(game.viewFor('p1').me?.pendingShot).toBe(false);
+    expect(game.viewFor('p1').players.every((p) => p.role !== null)).toBe(true);
+  });
 });
 
 describe('votación de día', () => {
@@ -416,7 +442,7 @@ describe('información oculta', () => {
   it('un aldeano solo conoce su propio rol', () => {
     const { game } = setupGame(['werewolf', 'seer', 'villager', 'villager']);
     const view = game.viewFor('p2');
-    expect(view.me).toEqual({ id: 'p2', role: 'villager', alive: true, loverId: null });
+    expect(view.me).toEqual({ id: 'p2', role: 'villager', alive: true, loverId: null, pendingShot: false });
     expect(view.players.map((p) => p.role)).toEqual([null, null, 'villager', null]);
     expect(view.action).toBeNull();
   });

@@ -21,6 +21,8 @@ export function readableChannels(state: RoomState | null): ChatChannel[] {
   const me = game.me;
   if (!me) return ['general'];
   const channels: ChatChannel[] = ['general'];
+  // El cazador que aún no ha disparado no ve lo que ven los muertos.
+  if (me.pendingShot) return channels;
   if (me.alive ? isWolfRole(me.role) : state.settings.deadSeeEverything) channels.push('wolves');
   if (!me.alive) channels.push('dead');
   return channels;
@@ -49,6 +51,7 @@ export function writeBlockReason(state: RoomState | null, channel: ChatChannel):
       if (!isWolfRole(me.role)) return 'Solo para lobos.';
       return night ? null : 'La manada solo se reúne de noche.';
     case 'dead':
+      if (me.pendingShot) return 'Primero tienes que disparar.';
       return me.alive ? 'Solo para los muertos.' : null;
   }
 }

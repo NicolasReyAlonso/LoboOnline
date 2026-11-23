@@ -43,6 +43,9 @@ export class ActionPanel {
     if (v.phase === 'hunter' && v.hunterId) {
       return { icon: '🏹', text: `${this.name(v.hunterId)} está apuntando con su escopeta…` };
     }
+    if (me.pendingShot) {
+      return { icon: '🏹', text: 'Has muerto, pero aún te queda un disparo. Prepárate para apuntar…' };
+    }
     if (!me.alive) {
       return { icon: '👻', text: 'Has muerto. Sigue la partida y habla con los demás muertos en su canal.' };
     }
