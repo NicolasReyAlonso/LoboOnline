@@ -23,18 +23,18 @@ import { crc32, deflateSync, inflateSync } from 'node:zlib';
 
 /** Dibujo de cada tarjeta dentro de `tarjetas/`. */
 const SOURCES = {
-  villager: 'tarjeta_Campesino.png',
-  werewolf: 'tarjeta_lobo.png',
-  seer: 'tarjeta_vidente.png',
-  witch: 'tarjeta_bruja.png',
-  hunter: 'tarjeta_Hunter.png',
-  cupid: 'tarjeta_Cupido.png',
-  protector: 'tarjeta_Protector.png',
+  villager: 'tarjetas_base/tarjeta_Campesino.png',
+  werewolf: 'tarjetas_base/tarjeta_lobo.png',
+  seer: 'tarjetas_base/tarjeta_vidente.png',
+  witch: 'tarjetas_base/tarjeta_bruja.png',
+  hunter: 'tarjetas_base/tarjeta_Hunter.png',
+  cupid: 'tarjetas_base/tarjeta_Cupido.png',
+  protector: 'tarjetas_base/tarjeta_Protector.png',
   // Navidad: Santa Claus solo existe en esta temporada; los demás son disfraces.
-  santa: 'navidad/tarjeta_Santa.png',
-  'christmas/villager': 'navidad/tarjeta_Elfo.png',
-  'christmas/hunter': 'navidad/tarjeta_Grinch.png',
-  'christmas/protector': 'navidad/tarjeta_MamaClaus.png',
+  santa: 'tarjetas_christmas/tarjeta_santa_claus.png',
+  'christmas/villager': 'tarjetas_christmas/tarjeta_elfo.png',
+  'christmas/hunter': 'tarjetas_christmas/tarjeta_grinch.png',
+  'christmas/protector': 'tarjetas_christmas/tarjeta_mama_claus.png',
 };
 
 /** Lado de las imágenes para la web (de sobra para verla grande en un móvil). */

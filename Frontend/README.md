@@ -56,7 +56,7 @@ src/app/
     chat/               Chat por canales
     role-card/          Tu carta: aparece en grande al empezar y luego se queda abajo, en la mano
   shared/               Countdown, toasts y card-art (el dibujo de una tarjeta)
-tarjetas/               Dibujos originales de las tarjetas (2048×2048)
+tarjetas/               Dibujos originales de las tarjetas (2048×2048): tarjetas_base/ y tarjetas_<temporada>/
 scripts/tarjetas.mjs    Los prepara para la web en public/tarjetas/
 ```
 
@@ -77,20 +77,20 @@ scripts/tarjetas.mjs    Los prepara para la web en public/tarjetas/
 
 ## Añadir o cambiar una tarjeta
 
-1. Guarda el dibujo en `tarjetas/` como PNG cuadrado, con líneas negras sobre fondo transparente y con el borde de la
+1. Guarda el dibujo en `tarjetas/tarjetas_base/` (o en la carpeta de su temporada) como PNG cuadrado, con líneas negras sobre fondo transparente y con el borde de la
    tarjeta cerrado. Si es un personaje nuevo, añade su fichero a la lista del principio de
    [`scripts/tarjetas.mjs`](scripts/tarjetas.mjs).
 2. Ejecuta `npm run tarjetas`. Genera las imágenes de `public/tarjetas/` y actualiza `src/app/core/role-cards.ts`.
 3. Haz commit de todo. Mientras un personaje no tenga dibujo, se usa una tarjeta provisional con su icono.
 
-Las tarjetas de Navidad van en `tarjetas/navidad/`, con estos nombres (ya están en la lista del script):
+Las tarjetas de Navidad van en `tarjetas/tarjetas_christmas/`, con estos nombres (ya están en la lista del script):
 
-| Fichero                  | Personaje                     |
-| ------------------------ | ----------------------------- |
-| `tarjeta_Santa.png`      | Santa Claus                   |
-| `tarjeta_Elfo.png`       | Elfo (el aldeano en Navidad)  |
-| `tarjeta_Grinch.png`     | Grinch (el cazador)           |
-| `tarjeta_MamaClaus.png`  | Mamá Claus (el protector)     |
+| Fichero                    | Personaje                     |
+| -------------------------- | ----------------------------- |
+| `tarjeta_santa_claus.png`  | Santa Claus                   |
+| `tarjeta_elfo.png`         | Elfo (el aldeano en Navidad)  |
+| `tarjeta_grinch.png`       | Grinch (el cazador)           |
+| `tarjeta_mama_claus.png`   | Mamá Claus (el protector)     |
 
 Un disfraz nunca usa la tarjeta del personaje de siempre: si falta su dibujo, sale la provisional con el nombre
 del disfraz. Los textos y los iconos de cada temporada están en [`core/season.ts`](src/app/core/season.ts),
