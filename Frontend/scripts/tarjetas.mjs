@@ -30,7 +30,7 @@ const SOURCES = {
   hunter: 'tarjetas_base/tarjeta_Hunter.png',
   cupid: 'tarjetas_base/tarjeta_Cupido.png',
   protector: 'tarjetas_base/tarjeta_Protector.png',
-  // Navidad: Santa Claus solo existe en esta temporada; los demás son disfraces.
+  // Navidad: Papá Noel solo existe en esta temporada; los demás son disfraces.
   santa: 'tarjetas_christmas/tarjeta_santa_claus.png',
   'christmas/villager': 'tarjetas_christmas/tarjeta_elfo.png',
   'christmas/hunter': 'tarjetas_christmas/tarjeta_grinch.png',

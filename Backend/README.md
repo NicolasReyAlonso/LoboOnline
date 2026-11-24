@@ -57,9 +57,9 @@ empezó.
 
 | Temporada              | Fechas                 | Personaje propio | Disfraces                                            |
 | ---------------------- | ---------------------- | ---------------- | ---------------------------------------------------- |
-| Navidad (`christmas`)  | 23 nov – 7 ene         | Santa Claus      | Cazador → Grinch, Aldeano → Elfo, Protector → Mamá Claus |
+| Navidad (`christmas`)  | 23 nov – 7 ene         | Papá Noel        | Cazador → Grinch, Aldeano → Elfo, Protector → Mamá Claus |
 
-**Santa Claus** no tiene turno: cada noche, al caer, descubre la carta de un jugador vivo al azar (que no sea él).
+**Papá Noel** no tiene turno: cada noche, al caer, descubre la carta de un jugador vivo al azar (que no sea él).
 Le puede tocar varias veces la misma persona. Si el anfitrión lo eligió y la temporada acaba antes de empezar,
 simplemente no se reparte.
 
@@ -74,7 +74,7 @@ rellenan el resto.
 | Jugadores | Personajes con poderes automáticos |
 | --------- | ---------------------------------- |
 | 4–5       | Vidente                            |
-| 5 (Navidad) | + Santa Claus                    |
+| 5 (Navidad) | + Papá Noel                        |
 | 6         | + Bruja                            |
 | 7         | + Cazador                          |
 | 8–9       | + Cupido                           |
@@ -210,7 +210,7 @@ Envía solo lo que cambie:
   readyIds: [...] | null,                                    // solo en day_discussion
   hunterId: '...' | null,                                    // solo en la fase hunter
   log: LogEntry[],          // historial público: muertes, votaciones, disparos...
-  privateLog: PrivateEntry[], // solo tuyo: visiones, regalos de Santa, pareja, víctima de los lobos, "te han mirado la carta"...
+  privateLog: PrivateEntry[], // solo tuyo: visiones, regalos de Papá Noel, pareja, víctima de los lobos, "te han mirado la carta"...
   winner: { side: 'village' | 'wolves' | 'lovers' | 'draw', playerIds } | null  // draw: playerIds vacío
 }
 ```

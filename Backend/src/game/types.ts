@@ -177,7 +177,7 @@ export type PrivateEntry =
   | { kind: 'protected'; night: number; targetId: string }
   | { kind: 'wolves_victim'; night: number; targetId: string | null }
   | { kind: 'witch'; night: number; healedId: string | null; poisonedId: string | null }
-  /** Santa Claus: cada noche descubre la carta de un jugador vivo al azar (puede repetirse). */
+  /** Papá Noel: cada noche descubre la carta de un jugador vivo al azar (puede repetirse). */
   | { kind: 'gift'; night: number; targetId: string; role: Role };
 
 /** Lo que el jugador puede hacer ahora mismo (o `null` si le toca esperar). */

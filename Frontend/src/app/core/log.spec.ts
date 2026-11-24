@@ -95,7 +95,7 @@ describe('describePrivate', () => {
     expect(describePrivate({ kind: 'seen', night: 2 }, nameOf).text).toBe('Noche 2: alguien ha mirado tu carta.');
   });
 
-  it('describe el regalo de Santa Claus', () => {
+  it('describe el regalo de Papá Noel', () => {
     expect(describePrivate({ kind: 'gift', night: 2, targetId: 'c', role: 'werewolf' }, nameOf)).toEqual({
       icon: '🎁',
       text: 'Noche 2: abres tu regalo… Carlos es Lobo.',

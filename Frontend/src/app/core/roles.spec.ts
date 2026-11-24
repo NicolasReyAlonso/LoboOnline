@@ -4,14 +4,14 @@ import { activeSeason } from './season';
 describe('personajes por temporada', () => {
   afterEach(() => activeSeason.set(null));
 
-  it('fuera de temporada son los de siempre y no hay Santa Claus', () => {
+  it('fuera de temporada son los de siempre y no hay Papá Noel', () => {
     expect(roleName('hunter')).toBe('Cazador');
     expect(villagersName()).toBe('Aldeanos');
     expect(rolesInOrder()).not.toContain('santa');
     expect(availablePowers()).not.toContain('santa');
   });
 
-  it('en Navidad hay Grinch, elfos, Mamá Claus y Santa Claus', () => {
+  it('en Navidad hay Grinch, elfos, Mamá Claus y Papá Noel', () => {
     activeSeason.set('christmas');
     expect(roleName('hunter')).toBe('Grinch');
     expect(roleName('villager')).toBe('Elfo');
@@ -24,7 +24,7 @@ describe('personajes por temporada', () => {
     expect(availablePowers()).toContain('santa');
     expect(compositionChips({ powers: { santa: 1 }, wolves: { min: 1, max: 1 } }).map((c) => c.label)).toEqual([
       '🐺 1 lobo',
-      '🎅 Santa Claus',
+      '🎅 Papá Noel',
       '🧝 Elfos (el resto)',
     ]);
   });

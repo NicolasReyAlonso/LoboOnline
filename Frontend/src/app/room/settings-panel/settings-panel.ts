@@ -47,7 +47,7 @@ export class SettingsPanel {
     () => this.settings().roles ?? defaultPowers(Math.max(MIN_PLAYERS, this.playerCount()), this.season()),
   );
 
-  /** Los de la temporada actual (Santa Claus solo aparece en Navidad). */
+  /** Los de la temporada actual (Papá Noel solo aparece en Navidad). */
   protected readonly powers = computed(() => availablePowers(this.season()));
   protected readonly maxWolvesLimit = MAX_WOLVES;
   protected readonly roleIcon = roleIcon;

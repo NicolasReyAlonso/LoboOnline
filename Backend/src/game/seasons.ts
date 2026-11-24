@@ -32,7 +32,7 @@ export const SEASON_INFO: Record<Season, SeasonInfo> = {
       villager: {
         name: 'Elfo',
         description:
-          'Ayudante de Santa sin poderes. Su arma es la palabra: debe descubrir a los lobos y votar para eliminarlos.',
+          'Ayudante de Papá Noel sin poderes. Su arma es la palabra: debe descubrir a los lobos y votar para eliminarlos.',
       },
       hunter: {
         name: 'Grinch',

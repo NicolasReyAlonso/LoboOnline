@@ -64,7 +64,7 @@ export const ROLE_INFO: Record<Role, RoleInfo> = {
       'Cada noche protege a un jugador del ataque de los lobos. No puede proteger a la misma persona dos noches seguidas.',
   },
   santa: {
-    name: 'Santa Claus',
+    name: 'Papá Noel',
     team: 'village',
     max: 1,
     season: 'christmas',
@@ -120,7 +120,7 @@ export function checkMaxWolves(maxWolves: number): void {
  * - quepan todos los personajes con poderes.
  *
  * Los personajes de otra temporada se quitan sin avisar: si el anfitrión eligió
- * a Santa Claus y la Navidad acaba antes de empezar, simplemente no sale.
+ * a Papá Noel y la Navidad acaba antes de empezar, simplemente no sale.
  */
 export function planComposition(
   players: number,

@@ -87,7 +87,7 @@ Las tarjetas de Navidad van en `tarjetas/tarjetas_christmas/`, con estos nombres
 
 | Fichero                    | Personaje                     |
 | -------------------------- | ----------------------------- |
-| `tarjeta_santa_claus.png`  | Santa Claus                   |
+| `tarjeta_santa_claus.png`  | Papá Noel                     |
 | `tarjeta_elfo.png`         | Elfo (el aldeano en Navidad)  |
 | `tarjeta_grinch.png`       | Grinch (el cazador)           |
 | `tarjeta_mama_claus.png`   | Mamá Claus (el protector)     |

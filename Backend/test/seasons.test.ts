@@ -39,7 +39,7 @@ describe('temporadas', () => {
   });
 });
 
-describe('Santa Claus en el reparto', () => {
+describe('Papá Noel en el reparto', () => {
   it('solo sale en Navidad, y entonces está en el reparto automático desde 5 jugadores', () => {
     expect(defaultPowers(5, 'christmas')).toMatchObject({ santa: 1 });
     expect(defaultPowers(4, 'christmas').santa).toBeUndefined();
@@ -56,7 +56,7 @@ describe('Santa Claus en el reparto', () => {
   });
 });
 
-describe('Santa Claus en partida', () => {
+describe('Papá Noel en partida', () => {
   it('cada noche descubre la carta de un jugador vivo al azar, aunque se repita', () => {
     // rng = 0: siempre le toca el primer jugador vivo que no es él (el lobo).
     const { game } = setupGame(['werewolf', 'santa', 'villager', 'villager', 'villager']);
@@ -82,7 +82,7 @@ describe('Santa Claus en partida', () => {
     expect(gift).toEqual({ kind: 'gift', night: 2, targetId: 'p1', role: 'werewolf' });
   });
 
-  it('si Santa está muerto ya no hay regalos', () => {
+  it('si Papá Noel está muerto ya no hay regalos', () => {
     const { game } = setupGame(['werewolf', 'santa', 'villager', 'villager', 'villager']);
     game.act('p0', { type: 'wolf_vote', target: 'p1' });
     passDay(game, ['p0', 'p2', 'p3', 'p4']);

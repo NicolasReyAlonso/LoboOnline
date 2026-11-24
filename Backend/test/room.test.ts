@@ -115,7 +115,7 @@ describe('Room', () => {
     expect(receivers).toEqual([victim.socketId]);
   });
 
-  it('en Navidad se reparte a Santa Claus y la temporada no cambia a mitad de partida', () => {
+  it('en Navidad se reparte a Papá Noel y la temporada no cambia a mitad de partida', () => {
     const { room } = makeRoom('christmas');
     const players = ['Ana', 'Bea', 'Carla', 'Dani', 'Eva'].map((n, i) => room.join(n, `s${i}`));
     expect(room.stateFor(players[0]!.id).season).toBe('christmas');
@@ -128,7 +128,7 @@ describe('Room', () => {
     expect(room.stateFor(santa.id).game?.privateLog[0]).toMatchObject({ kind: 'gift', night: 1 });
   });
 
-  it('fuera de temporada no hay Santa Claus', () => {
+  it('fuera de temporada no hay Papá Noel', () => {
     const { room } = makeRoom(null);
     const players = ['Ana', 'Bea', 'Carla', 'Dani', 'Eva'].map((n, i) => room.join(n, `s${i}`));
     room.updateSettings(players[0]!.id, { roles: { seer: 1, santa: 1 } });

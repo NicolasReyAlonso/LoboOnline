@@ -57,7 +57,7 @@ export class ActionPanel {
       return { icon: '👻', text: 'Has muerto. Sigue la partida y habla con los demás muertos en su canal.' };
     }
     if (isNightPhase(v.phase)) {
-      // Santa Claus no tiene turno: mientras los demás actúan, abre el regalo de esta noche.
+      // Papá Noel no tiene turno: mientras los demás actúan, abre el regalo de esta noche.
       const gift = v.privateLog.find((e): e is Gift => e.kind === 'gift' && e.night === v.night);
       if (gift) {
         return {

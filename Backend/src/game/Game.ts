@@ -454,7 +454,7 @@ export class Game {
   }
 
   /**
-   * Santa Claus no tiene turno: al caer la noche descubre la carta de un
+   * Papá Noel no tiene turno: al caer la noche descubre la carta de un
    * jugador vivo al azar (que no sea él). Puede tocarle la misma persona varias veces.
    */
   private deliverGifts(): void {
@@ -760,7 +760,7 @@ export class Game {
 
   /**
    * Roles que conoce un jugador vivo: el suyo, el de los otros lobos, el de su
-   * pareja, lo que ha visto la vidente y los regalos de Santa Claus.
+   * pareja, lo que ha visto la vidente y los regalos de Papá Noel.
    */
   private knownRoles(me: GamePlayer | null): Map<string, Role> {
     const known = new Map<string, Role>();
