@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { GameService } from '../../core/game.service';
-import { ROLE_ICON, ROLE_ORDER, roleDescription, roleName } from '../../core/roles';
+import { roleDescription, roleIcon, roleName, rolesInOrder } from '../../core/roles';
+import { activeSeason, seasonLabel } from '../../core/season';
 import { loadName, saveName } from '../../core/session';
 
 @Component({
@@ -20,12 +21,18 @@ export class Home {
   protected readonly busy = signal(false);
   protected readonly validName = computed(() => this.name().trim().length > 0);
 
-  protected readonly roles = ROLE_ORDER.map((role) => ({
-    role,
-    icon: ROLE_ICON[role],
-    name: roleName(role),
-    description: roleDescription(role),
-  }));
+  protected readonly season = computed(() => {
+    const season = activeSeason();
+    return season ? seasonLabel(season) : null;
+  });
+  protected readonly roles = computed(() =>
+    rolesInOrder().map((role) => ({
+      role,
+      icon: roleIcon(role),
+      name: roleName(role),
+      description: roleDescription(role),
+    })),
+  );
 
   protected setCode(input: HTMLInputElement): void {
     const clean = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);

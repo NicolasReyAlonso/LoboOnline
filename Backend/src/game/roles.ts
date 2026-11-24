@@ -1,5 +1,5 @@
 import { GameError } from './errors.js';
-import { POWER_ROLES, ROLES, type Composition, type Role, type RoleCounts, type Team } from './types.js';
+import { POWER_ROLES, ROLES, type Composition, type Role, type RoleCounts, type Season, type Team } from './types.js';
 
 export const MIN_PLAYERS = 4;
 export const MAX_PLAYERS = 20;
@@ -11,6 +11,10 @@ export interface RoleInfo {
   /** Máximo de cartas de este rol en una partida. */
   max: number;
   description: string;
+  /** Plural, si no basta con añadir una "s" (de momento solo se usa el de los aldeanos). */
+  plural?: string;
+  /** Si solo existe durante una temporada. */
+  season?: Season;
 }
 
 export const ROLE_INFO: Record<Role, RoleInfo> = {
@@ -59,15 +63,30 @@ export const ROLE_INFO: Record<Role, RoleInfo> = {
     description:
       'Cada noche protege a un jugador del ataque de los lobos. No puede proteger a la misma persona dos noches seguidas.',
   },
+  santa: {
+    name: 'Santa Claus',
+    team: 'village',
+    max: 1,
+    season: 'christmas',
+    description:
+      'Cada noche le llega un regalo: la carta de un jugador vivo al azar. Le puede tocar varias veces la misma persona.',
+  },
 };
 
 export function isWolf(role: Role): boolean {
   return ROLE_INFO[role].team === 'wolves';
 }
 
+/** Si el personaje se puede repartir en esta temporada (`null` = fuera de temporada). */
+export function isRoleAvailable(role: Role, season: Season | null): boolean {
+  const only = ROLE_INFO[role].season;
+  return only === undefined || only === season;
+}
+
 /** Personajes con poderes recomendados según el número de jugadores. */
-export function defaultPowers(players: number): RoleCounts {
+export function defaultPowers(players: number, season: Season | null = null): RoleCounts {
   const counts: RoleCounts = { seer: 1 };
+  if (players >= 5 && season === 'christmas') counts.santa = 1;
   if (players >= 6) counts.witch = 1;
   if (players >= 7) counts.hunter = 1;
   if (players >= 8) counts.cupid = 1;
@@ -99,8 +118,16 @@ export function checkMaxWolves(maxWolves: number): void {
  * posible. El máximo de lobos se recorta para que:
  * - haya siempre menos lobos que no-lobos, y
  * - quepan todos los personajes con poderes.
+ *
+ * Los personajes de otra temporada se quitan sin avisar: si el anfitrión eligió
+ * a Santa Claus y la Navidad acaba antes de empezar, simplemente no sale.
  */
-export function planComposition(players: number, roles: RoleCounts | null, maxWolves: number): Composition {
+export function planComposition(
+  players: number,
+  roles: RoleCounts | null,
+  maxWolves: number,
+  season: Season | null = null,
+): Composition {
   if (players < MIN_PLAYERS) {
     throw new GameError('not_enough_players', `Hacen falta al menos ${MIN_PLAYERS} jugadores.`);
   }
@@ -108,8 +135,12 @@ export function planComposition(players: number, roles: RoleCounts | null, maxWo
     throw new GameError('too_many_players', `Como mucho pueden jugar ${MAX_PLAYERS} personas.`);
   }
   checkMaxWolves(maxWolves);
-  const powers = roles ?? defaultPowers(players);
-  checkRoleCounts(powers);
+  const chosen = roles ?? defaultPowers(players, season);
+  checkRoleCounts(chosen);
+  const powers: RoleCounts = {};
+  for (const role of POWER_ROLES) {
+    if (chosen[role] && isRoleAvailable(role, season)) powers[role] = chosen[role];
+  }
 
   const powerCount = POWER_ROLES.reduce((sum, r) => sum + (powers[r] ?? 0), 0);
   if (powerCount + 1 > players) {

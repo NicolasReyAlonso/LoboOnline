@@ -9,7 +9,7 @@
         </button>
       }
       @case ('protect') {
-        <h2>🛡️ ¿A quién proteges esta noche?</h2>
+        <h2>{{ roleIcon('protector') }} ¿A quién proteges esta noche?</h2>
         <p class="muted">
           Toca a un jugador para protegerlo de los lobos.
           @if (a.forbiddenId) {
@@ -75,10 +75,10 @@
         </button>
       }
       @case ('shoot') {
-        <h2>🏹 Tu último disparo</h2>
-        <p class="muted">Has muerto, pero te queda un cartucho. ¿A quién te llevas contigo?</p>
+        <h2>{{ roleIcon('hunter') }} {{ hunter().heading }}</h2>
+        <p class="muted">{{ hunter().prompt }}</p>
         <button class="btn btn-danger btn-block" [disabled]="!target() || busy()" (click)="confirm()">
-          {{ target() ? 'Disparar a ' + name(target()) : 'Elige a alguien' }}
+          {{ target() ? hunter().confirm(name(target())) : 'Elige a alguien' }}
         </button>
       }
       @case ('vote') {

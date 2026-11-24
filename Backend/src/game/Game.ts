@@ -449,7 +449,21 @@ export class Game {
     this._night++;
     this.nightState = newNight();
     this.log.push({ kind: 'night_start', night: this._night });
+    this.deliverGifts();
     this.enterNightStep(0);
+  }
+
+  /**
+   * Santa Claus no tiene turno: al caer la noche descubre la carta de un
+   * jugador vivo al azar (que no sea él). Puede tocarle la misma persona varias veces.
+   */
+  private deliverGifts(): void {
+    for (const santa of this.alivePlayers().filter((p) => p.role === 'santa')) {
+      const others = this.alivePlayers().filter((p) => p.id !== santa.id);
+      if (others.length === 0) continue;
+      const t = this.pick(others);
+      this.addPrivate(santa.id, { kind: 'gift', night: this._night, targetId: t.id, role: t.role });
+    }
   }
 
   private nextNightStep(): void {
@@ -744,7 +758,10 @@ export class Game {
     }
   }
 
-  /** Roles que conoce un jugador vivo: el suyo, el de los otros lobos, el de su pareja y lo que ha visto la vidente. */
+  /**
+   * Roles que conoce un jugador vivo: el suyo, el de los otros lobos, el de su
+   * pareja, lo que ha visto la vidente y los regalos de Santa Claus.
+   */
   private knownRoles(me: GamePlayer | null): Map<string, Role> {
     const known = new Map<string, Role>();
     if (!me) return known;
@@ -755,7 +772,7 @@ export class Game {
     const partner = me.loverId ? this.byId.get(me.loverId) : undefined;
     if (partner) known.set(partner.id, partner.role);
     for (const entry of this.privateLogs.get(me.id) ?? []) {
-      if (entry.kind === 'vision') known.set(entry.targetId, entry.role);
+      if (entry.kind === 'vision' || entry.kind === 'gift') known.set(entry.targetId, entry.role);
     }
     return known;
   }

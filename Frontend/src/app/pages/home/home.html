@@ -55,8 +55,11 @@
 
   <section class="card">
     <h2 class="roles-title">Los personajes</h2>
+    @if (season(); as label) {
+      <p class="season">{{ label }}</p>
+    }
     <ul class="roles">
-      @for (r of roles; track r.role) {
+      @for (r of roles(); track r.role) {
         <li>
           <span class="role-icon" aria-hidden="true">{{ r.icon }}</span>
           <div>

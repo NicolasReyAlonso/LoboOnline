@@ -1,5 +1,6 @@
 import type { LogEntry, PrivateEntry, PublicDeath } from '@lobo/game/types';
-import { roleName, SIDE_INFO } from './roles';
+import { roleIcon, roleName, SIDE_INFO } from './roles';
+import { hunterTexts } from './season';
 
 export interface LogLine {
   icon: string;
@@ -48,11 +49,13 @@ export function describePublic(entry: LogEntry, nameOf: NameOf): LogLine[] {
     }
     case 'hunter_shot': {
       const shot = entry.deaths.find((d) => d.cause === 'hunter');
+      const texts = hunterTexts();
+      const icon = roleIcon('hunter');
       if (!entry.targetId || !shot) {
-        return [{ icon: '🏹', text: `${nameOf(entry.hunterId)}, el cazador, no llega a disparar.` }];
+        return [{ icon, text: texts.missed(nameOf(entry.hunterId)) }];
       }
       return [
-        { icon: '🏹', text: `${nameOf(entry.hunterId)}, el cazador, dispara a ${who(shot, nameOf)}.` },
+        { icon, text: texts.shot(nameOf(entry.hunterId), who(shot, nameOf)) },
         ...griefLines(entry.deaths, nameOf),
       ];
     }
@@ -77,7 +80,12 @@ export function describePrivate(entry: PrivateEntry, nameOf: NameOf): LogLine {
     case 'seen':
       return { icon: '👁️', text: `Noche ${entry.night}: alguien ha mirado tu carta.` };
     case 'protected':
-      return { icon: '🛡️', text: `Noche ${entry.night}: proteges a ${nameOf(entry.targetId)}.` };
+      return { icon: roleIcon('protector'), text: `Noche ${entry.night}: proteges a ${nameOf(entry.targetId)}.` };
+    case 'gift':
+      return {
+        icon: '🎁',
+        text: `Noche ${entry.night}: abres tu regalo… ${nameOf(entry.targetId)} es ${roleName(entry.role)}.`,
+      };
     case 'wolves_victim':
       return {
         icon: '🐺',

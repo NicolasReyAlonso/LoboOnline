@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { avatarColor, initial } from '../../core/avatar';
 import { GameService } from '../../core/game.service';
-import { isWolfRole, ROLE_ICON, roleName, SIDE_INFO } from '../../core/roles';
+import { isWolfRole, roleIcon, roleName, SIDE_INFO } from '../../core/roles';
 
 @Component({
   selector: 'app-end-screen',
@@ -44,7 +44,7 @@ export class EndScreen {
     return this.view().players.map((p) => ({
       ...p,
       won: winners.has(p.id),
-      roleLabel: p.role ? `${ROLE_ICON[p.role]} ${roleName(p.role)}` : '¿?',
+      roleLabel: p.role ? `${roleIcon(p.role)} ${roleName(p.role)}` : '¿?',
     }));
   });
 

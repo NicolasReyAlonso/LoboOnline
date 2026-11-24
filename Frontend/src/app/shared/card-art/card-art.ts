@@ -1,7 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import type { Role } from '@lobo/game/types';
-import { ROLES_WITH_CARD } from '../../core/role-cards';
-import { ROLE_ICON, roleName } from '../../core/roles';
+import { hasSkin } from '@lobo/game/seasons';
+import type { Role, Season } from '@lobo/game/types';
+import { DRAWN_CARDS } from '../../core/role-cards';
+import { roleIcon, roleName } from '../../core/roles';
+import { activeSeason } from '../../core/season';
+
+/**
+ * Qué tarjeta corresponde a un personaje: la suya (`seer`) o, si va disfrazado
+ * en la temporada, la del disfraz (`christmas/hunter`, el Grinch).
+ */
+export function cardKey(role: Role, season: Season | null): string {
+  return hasSkin(role, season) ? `${season}/${role}` : role;
+}
 
 /** `url(...)` absoluta, para que funcione igual en local y en GitHub Pages (/LoboOnline/). */
 function assetUrl(path: string): string {
@@ -12,8 +22,8 @@ function assetUrl(path: string): string {
  * El dibujo de la tarjeta de un personaje, coloreado con el tema: de día tinta
  * oscura sobre papel claro y de noche en negativo (ver --card-ink y
  * --card-paper en styles.scss). Las imágenes son máscaras que genera
- * `npm run tarjetas`. Si un personaje aún no tiene dibujo, se pinta una
- * tarjeta provisional con el mismo estilo.
+ * `npm run tarjetas`. Si un personaje (o su disfraz de temporada) aún no tiene
+ * dibujo, se pinta una tarjeta provisional con el mismo estilo.
  */
 @Component({
   selector: 'app-card-art',
@@ -93,9 +103,10 @@ function assetUrl(path: string): string {
 export class CardArt {
   readonly role = input.required<Role>();
 
-  protected readonly drawn = computed(() => ROLES_WITH_CARD.has(this.role()));
-  protected readonly silhouette = computed(() => assetUrl(`tarjetas/${this.role()}-silueta.png`));
-  protected readonly lines = computed(() => assetUrl(`tarjetas/${this.role()}-lineas.png`));
+  private readonly key = computed(() => cardKey(this.role(), activeSeason()));
+  protected readonly drawn = computed(() => DRAWN_CARDS.has(this.key()));
+  protected readonly silhouette = computed(() => assetUrl(`tarjetas/${this.key()}-silueta.png`));
+  protected readonly lines = computed(() => assetUrl(`tarjetas/${this.key()}-lineas.png`));
   protected readonly name = computed(() => roleName(this.role()));
-  protected readonly icon = computed(() => ROLE_ICON[this.role()]);
+  protected readonly icon = computed(() => roleIcon(this.role()));
 }

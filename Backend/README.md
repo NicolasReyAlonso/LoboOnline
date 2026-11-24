@@ -16,6 +16,7 @@ Variables de entorno:
 | ------------- | ----------- | ------------------------------------------------------------------------ |
 | `PORT`        | `3000`      | Puerto HTTP/WebSocket                                                    |
 | `CORS_ORIGIN` | `*`         | Orígenes permitidos, separados por comas (en producción, pon el del front) |
+| `SEASON`      | (por fecha) | Fuerza una temporada (`christmas`) o ninguna (`none`). Útil para probarla |
 
 `GET /health` devuelve `{ "ok": true, "rooms": <n> }`.
 
@@ -47,7 +48,20 @@ mirando los mensajes de red.
 
 ## Reglas implementadas
 
-**Roles:** Aldeano, Lobo, Vidente, Bruja, Cazador, Cupido y Protector.
+**Roles:** Aldeano, Lobo, Vidente, Bruja, Cazador, Cupido y Protector. Y en temporada, su personaje propio.
+
+**Temporadas** ([`seasons.ts`](src/game/seasons.ts)): en ciertas fechas, todos los años, hay un personaje
+exclusivo y algunos personajes se disfrazan (cambian nombre, descripción y tarjeta, pero juegan igual). El servidor
+decide la temporada por la fecha (o por `SEASON`) y la envía en `RoomState.season`; una partida conserva la de cuando
+empezó.
+
+| Temporada              | Fechas                 | Personaje propio | Disfraces                                            |
+| ---------------------- | ---------------------- | ---------------- | ---------------------------------------------------- |
+| Navidad (`christmas`)  | 23 nov – 7 ene         | Santa Claus      | Cazador → Grinch, Aldeano → Elfo, Protector → Mamá Claus |
+
+**Santa Claus** no tiene turno: cada noche, al caer, descubre la carta de un jugador vivo al azar (que no sea él).
+Le puede tocar varias veces la misma persona. Si el anfitrión lo eligió y la temporada acaba antes de empezar,
+simplemente no se reparte.
 
 **Lobos secretos:** el anfitrión elige el **máximo** de lobos (`maxWolves`, de 1 a 6, por defecto 2). Al empezar
 cada partida se sortea cuántos hay, entre 1 y ese máximo. El máximo se recorta solo si no cabe: siempre tiene que
@@ -60,6 +74,7 @@ rellenan el resto.
 | Jugadores | Personajes con poderes automáticos |
 | --------- | ---------------------------------- |
 | 4–5       | Vidente                            |
+| 5 (Navidad) | + Santa Claus                    |
 | 6         | + Bruja                            |
 | 7         | + Cazador                          |
 | 8–9       | + Cupido                           |
@@ -157,6 +172,7 @@ Con socket.io-client ≥ 4.6 se puede usar `await socket.emitWithAck(evento, pay
   limits: { minPlayers: 4, maxPlayers: 20 },
   rolePreview: { composition: Composition | null, error: string | null } | null,
   game: GameView | null,
+  season: 'christmas' | null,  // en el lobby, la de hoy; en partida, la de cuando empezó
   serverTime: 1763484000000   // hora del servidor, para corregir el desfase del reloj del cliente
 }
 ```
@@ -168,7 +184,7 @@ Envía solo lo que cambie:
 ```ts
 {
   maxWolves?: 1..6,
-  roles?: { seer?: 0|1, witch?: 0|1, hunter?: 0|1, cupid?: 0|1, protector?: 0|1 } | null,  // null = automático
+  roles?: { seer?: 0|1, witch?: 0|1, hunter?: 0|1, cupid?: 0|1, protector?: 0|1, santa?: 0|1 } | null,  // null = automático
   revealRoleOnDeath?: boolean,
   deadSeeEverything?: boolean,
   durations?: { discussion?, vote?, wolves?, nightAction?, announcement?, hunter?, phantomMin?, phantomMax? }  // segundos
@@ -194,7 +210,7 @@ Envía solo lo que cambie:
   readyIds: [...] | null,                                    // solo en day_discussion
   hunterId: '...' | null,                                    // solo en la fase hunter
   log: LogEntry[],          // historial público: muertes, votaciones, disparos...
-  privateLog: PrivateEntry[], // solo tuyo: visiones, pareja, víctima de los lobos, "te han mirado la carta"...
+  privateLog: PrivateEntry[], // solo tuyo: visiones, regalos de Santa, pareja, víctima de los lobos, "te han mirado la carta"...
   winner: { side: 'village' | 'wolves' | 'lovers' | 'draw', playerIds } | null  // draw: playerIds vacío
 }
 ```

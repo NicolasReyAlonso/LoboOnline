@@ -1,4 +1,5 @@
-import type { Phase } from '@lobo/game/types';
+import type { Phase, Season } from '@lobo/game/types';
+import { activeSeason, hunterTexts } from './season';
 
 export interface PhaseInfo {
   icon: string;
@@ -7,7 +8,7 @@ export interface PhaseInfo {
 }
 
 /** Lo que "dice el narrador" en cada fase. Se muestra a todos por igual. */
-export const PHASE_INFO: Record<Phase, PhaseInfo> = {
+const PHASE_INFO: Record<Phase, PhaseInfo> = {
   night_cupid: { icon: '💘', title: 'Noche', narration: 'Cupido despierta y lanza sus flechas…' },
   night_protector: { icon: '🛡️', title: 'Noche', narration: 'El protector vela por alguien del pueblo…' },
   night_seer: { icon: '🔮', title: 'Noche', narration: 'La vidente consulta su bola de cristal…' },
@@ -20,3 +21,19 @@ export const PHASE_INFO: Record<Phase, PhaseInfo> = {
   dusk: { icon: '🌇', title: 'Atardecer', narration: 'El pueblo ha tomado una decisión.' },
   ended: { icon: '🏁', title: 'Fin de la partida', narration: 'Se descubren todas las cartas.' },
 };
+
+/** Cambios del narrador en cada temporada (lo que no aparece aquí es igual que siempre). */
+const SEASON_PHASES: Record<Season, Partial<Record<Phase, PhaseInfo>>> = {
+  christmas: {
+    night_protector: { icon: '🤶', title: 'Noche', narration: 'Mamá Claus arropa a alguien del pueblo…' },
+    hunter: {
+      icon: '😈',
+      title: hunterTexts('christmas').phaseTitle,
+      narration: hunterTexts('christmas').phaseNarration,
+    },
+  },
+};
+
+export function phaseInfo(phase: Phase, season: Season | null = activeSeason()): PhaseInfo {
+  return (season && SEASON_PHASES[season][phase]) || PHASE_INFO[phase];
+}

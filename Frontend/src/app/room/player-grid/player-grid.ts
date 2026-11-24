@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import type { PlayerView } from '@lobo/game/types';
 import { avatarColor, initial } from '../../core/avatar';
-import { isWolfRole, ROLE_ICON, roleName } from '../../core/roles';
+import { isWolfRole, roleIcon, roleName } from '../../core/roles';
 
 /** Rejilla de jugadores. Solo pinta: qué se puede elegir y qué pasa al tocar lo decide el padre. */
 @Component({
@@ -22,7 +22,7 @@ export class PlayerGrid {
   readonly offline = input<ReadonlySet<string>>(new Set());
   readonly pick = output<string>();
 
-  protected readonly icon = ROLE_ICON;
+  protected readonly roleIcon = roleIcon;
   protected readonly roleName = roleName;
   protected readonly isWolf = isWolfRole;
   protected readonly color = avatarColor;

@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { defaultPowers, MAX_WOLVES, MIN_PLAYERS } from '@lobo/game/roles';
 import { DURATION_LIMITS } from '@lobo/game/settings';
-import { POWER_ROLES, type Durations, type GameSettings, type PowerRole, type RoleCounts } from '@lobo/game/types';
+import type { Durations, GameSettings, PowerRole, RoleCounts } from '@lobo/game/types';
 import { GameService } from '../../core/game.service';
-import { compositionChips, ROLE_ICON, roleName } from '../../core/roles';
+import { seasonLabel } from '../../core/season';
+import { availablePowers, compositionChips, roleIcon, roleName, villagersName } from '../../core/roles';
 
 type Option = 'revealRoleOnDeath' | 'deadSeeEverything';
 
@@ -18,6 +19,11 @@ export class SettingsPanel {
   protected readonly game = inject(GameService);
 
   protected readonly settings = computed(() => this.game.state()!.settings);
+  private readonly season = computed(() => this.game.state()!.season);
+  protected readonly seasonText = computed(() => {
+    const season = this.season();
+    return season ? seasonLabel(season) : null;
+  });
   protected readonly playerCount = computed(() => this.game.state()!.players.length);
   protected readonly editable = this.game.isHost;
   protected readonly auto = computed(() => this.settings().roles === null);
@@ -38,13 +44,15 @@ export class SettingsPanel {
 
   /** Personajes con poderes actuales (los elegidos, o los automáticos para el número de jugadores). */
   protected readonly counts = computed<RoleCounts>(
-    () => this.settings().roles ?? defaultPowers(Math.max(MIN_PLAYERS, this.playerCount())),
+    () => this.settings().roles ?? defaultPowers(Math.max(MIN_PLAYERS, this.playerCount()), this.season()),
   );
 
-  protected readonly powers = POWER_ROLES;
+  /** Los de la temporada actual (Santa Claus solo aparece en Navidad). */
+  protected readonly powers = computed(() => availablePowers(this.season()));
   protected readonly maxWolvesLimit = MAX_WOLVES;
-  protected readonly icon = ROLE_ICON;
+  protected readonly roleIcon = roleIcon;
   protected readonly roleName = roleName;
+  protected readonly villagers = computed(() => villagersName(this.season()).toLowerCase());
 
   protected readonly durationFields: readonly { key: keyof Durations; label: string }[] = [
     { key: 'discussion', label: 'Debate' },

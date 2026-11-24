@@ -1,6 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, model, signal, untracked } from '@angular/core';
-import { isNightPhase, VOTE_COUNTDOWN_SECONDS, type GameAction } from '@lobo/game/types';
+import { isNightPhase, VOTE_COUNTDOWN_SECONDS, type GameAction, type PrivateEntry } from '@lobo/game/types';
 import { GameService } from '../../core/game.service';
+import { roleIcon, roleName } from '../../core/roles';
+import { hunterTexts } from '../../core/season';
+
+type Gift = Extract<PrivateEntry, { kind: 'gift' }>;
 
 /**
  * "Lo que te toca hacer ahora". Muestra las instrucciones de la acción
@@ -28,6 +32,9 @@ export class ActionPanel {
   /** Más de la mitad de los vivos. */
   protected readonly readyNeeded = computed(() => Math.floor(this.aliveCount() / 2) + 1);
   protected readonly countdownSeconds = VOTE_COUNTDOWN_SECONDS;
+  /** Textos del cazador (o del Grinch en Navidad). */
+  protected readonly hunter = computed(() => hunterTexts());
+  protected readonly roleIcon = roleIcon;
 
   protected readonly wolfVotes = computed(() => {
     const a = this.action();
@@ -41,15 +48,25 @@ export class ActionPanel {
     const me = v.me;
     if (!me) return { icon: '👀', text: 'Estás viendo la partida como espectador.' };
     if (v.phase === 'hunter' && v.hunterId) {
-      return { icon: '🏹', text: `${this.name(v.hunterId)} está apuntando con su escopeta…` };
+      return { icon: roleIcon('hunter'), text: this.hunter().aiming(this.name(v.hunterId)) };
     }
     if (me.pendingShot) {
-      return { icon: '🏹', text: 'Has muerto, pero aún te queda un disparo. Prepárate para apuntar…' };
+      return { icon: roleIcon('hunter'), text: this.hunter().waiting };
     }
     if (!me.alive) {
       return { icon: '👻', text: 'Has muerto. Sigue la partida y habla con los demás muertos en su canal.' };
     }
-    if (isNightPhase(v.phase)) return { icon: '💤', text: 'Duermes mientras otros actúan en la oscuridad…' };
+    if (isNightPhase(v.phase)) {
+      // Santa Claus no tiene turno: mientras los demás actúan, abre el regalo de esta noche.
+      const gift = v.privateLog.find((e): e is Gift => e.kind === 'gift' && e.night === v.night);
+      if (gift) {
+        return {
+          icon: '🎁',
+          text: `Tu regalo de esta noche: ${this.name(gift.targetId)} es ${roleName(gift.role)}.`,
+        };
+      }
+      return { icon: '💤', text: 'Duermes mientras otros actúan en la oscuridad…' };
+    }
     return null;
   });
 

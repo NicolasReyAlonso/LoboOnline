@@ -21,7 +21,7 @@ beforeEach(async () => {
   server = createLoboServer({
     port: 0,
     corsOrigin: '*',
-    rooms: { ...DEFAULT_ROOM_CONFIG, chatMinIntervalMs: 0 },
+    rooms: { ...DEFAULT_ROOM_CONFIG, chatMinIntervalMs: 0, season: null },
   });
   url = `http://localhost:${await server.listen(0)}`;
 });

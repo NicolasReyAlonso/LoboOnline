@@ -9,12 +9,26 @@
 // Roles y bandos
 // ---------------------------------------------------------------------------
 
-export const ROLES = ['villager', 'werewolf', 'seer', 'witch', 'hunter', 'cupid', 'protector'] as const;
+export const ROLES = ['villager', 'werewolf', 'seer', 'witch', 'hunter', 'cupid', 'protector', 'santa'] as const;
 export type Role = (typeof ROLES)[number];
 
-/** Personajes del pueblo con poderes. Los lobos y los aldeanos se reparten aparte. */
+/**
+ * Personajes del pueblo con poderes. Los lobos y los aldeanos se reparten aparte.
+ * Algunos solo existen durante su temporada (ver `ROLE_INFO[role].season`).
+ */
 export type PowerRole = Exclude<Role, 'villager' | 'werewolf'>;
-export const POWER_ROLES: readonly PowerRole[] = ['seer', 'witch', 'hunter', 'cupid', 'protector'];
+export const POWER_ROLES: readonly PowerRole[] = ['seer', 'witch', 'hunter', 'cupid', 'protector', 'santa'];
+
+// ---------------------------------------------------------------------------
+// Temporadas
+// ---------------------------------------------------------------------------
+
+/**
+ * Épocas del año con personajes propios y disfraces para los de siempre
+ * (ver `seasons.ts`). Fuera de temporada se juega con los personajes clásicos.
+ */
+export const SEASONS = ['christmas'] as const;
+export type Season = (typeof SEASONS)[number];
 
 /** Cuántas cartas hay de cada personaje con poderes. */
 export type RoleCounts = Partial<Record<PowerRole, number>>;
@@ -162,7 +176,9 @@ export type PrivateEntry =
   | { kind: 'seen'; night: number }
   | { kind: 'protected'; night: number; targetId: string }
   | { kind: 'wolves_victim'; night: number; targetId: string | null }
-  | { kind: 'witch'; night: number; healedId: string | null; poisonedId: string | null };
+  | { kind: 'witch'; night: number; healedId: string | null; poisonedId: string | null }
+  /** Santa Claus: cada noche descubre la carta de un jugador vivo al azar (puede repetirse). */
+  | { kind: 'gift'; night: number; targetId: string; role: Role };
 
 /** Lo que el jugador puede hacer ahora mismo (o `null` si le toca esperar). */
 export type PendingAction =

@@ -27,7 +27,7 @@
             }
           </span>
           @if (p.role) {
-            <span class="role" [class.wolf]="isWolf(p.role)">{{ icon[p.role] }} {{ roleName(p.role) }}</span>
+            <span class="role" [class.wolf]="isWolf(p.role)">{{ roleIcon(p.role) }} {{ roleName(p.role) }}</span>
           } @else {
             <span class="role muted">¿?</span>
           }

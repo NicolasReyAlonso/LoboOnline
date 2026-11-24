@@ -1,5 +1,6 @@
 import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
+import { seasonAt } from '@lobo/game/seasons';
 import { isNightPhase } from '@lobo/game/types';
 import type {
   AckResponse,
@@ -16,6 +17,7 @@ import { io, type Socket } from 'socket.io-client';
 import { environment } from '../../environments/environment';
 import { readableChannels } from './chat-rules';
 import { ClockService } from './clock.service';
+import { activeSeason } from './season';
 import { loadSession, saveSession } from './session';
 import { ToastService } from './toast.service';
 
@@ -86,6 +88,13 @@ export class GameService {
     s.on('chat:history', (list) => this.messages.set(list));
     s.on('room:kicked', () => this.reset('El anfitrión te ha expulsado de la sala.'));
     s.on('room:replaced', () => this.reset('Has abierto esta partida en otra pestaña o dispositivo.'));
+
+    // Temporada que se muestra: la que dice la sala o, fuera de una sala, la de hoy.
+    activeSeason.set(seasonAt(new Date()));
+    effect(() => {
+      const state = this.state();
+      activeSeason.set(state ? state.season : seasonAt(new Date()));
+    });
 
     // Al morir o al acabar la partida se pueden leer canales nuevos: se recarga el historial.
     const channels = computed(() => readableChannels(this.state()).join());

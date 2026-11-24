@@ -1,4 +1,5 @@
 import { describePrivate, describePublic } from './log';
+import { activeSeason } from './season';
 
 const names: Record<string, string> = { a: 'Ana', b: 'Bea', c: 'Carlos' };
 const nameOf = (id: string) => names[id] ?? '¿?';
@@ -60,6 +61,22 @@ describe('describePublic', () => {
     expect(lines[0].text).toBe('Ana, el cazador, dispara a Bea (Lobo).');
   });
 
+  it('en Navidad el cazador es el Grinch y los aldeanos son elfos', () => {
+    activeSeason.set('christmas');
+    try {
+      const lines = describePublic(
+        { kind: 'hunter_shot', hunterId: 'a', targetId: 'b', deaths: [{ playerId: 'b', cause: 'hunter', role: 'villager' }] },
+        nameOf,
+      );
+      expect(lines[0]).toEqual({ icon: '😈', text: 'Ana, el Grinch, se lleva a Bea (Elfo).' });
+      expect(describePublic({ kind: 'hunter_shot', hunterId: 'a', targetId: null, deaths: [] }, nameOf)[0].text).toBe(
+        'Ana, el Grinch, no llega a llevarse a nadie.',
+      );
+    } finally {
+      activeSeason.set(null);
+    }
+  });
+
   it('anuncia el empate', () => {
     expect(describePublic({ kind: 'game_over', winner: 'draw', winnerIds: [] }, nameOf)).toEqual([
       { icon: '🤝', text: 'Empate: no queda nadie con vida.' },
@@ -76,6 +93,13 @@ describe('describePrivate', () => {
 
   it('avisa de que te han mirado la carta, sin decir quién', () => {
     expect(describePrivate({ kind: 'seen', night: 2 }, nameOf).text).toBe('Noche 2: alguien ha mirado tu carta.');
+  });
+
+  it('describe el regalo de Santa Claus', () => {
+    expect(describePrivate({ kind: 'gift', night: 2, targetId: 'c', role: 'werewolf' }, nameOf)).toEqual({
+      icon: '🎁',
+      text: 'Noche 2: abres tu regalo… Carlos es Lobo.',
+    });
   });
 
   it('describe las pociones de la bruja', () => {

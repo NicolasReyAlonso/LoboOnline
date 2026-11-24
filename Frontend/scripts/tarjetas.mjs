@@ -2,21 +2,26 @@
  * Prepara las tarjetas de personaje para la web. Uso: `npm run tarjetas`.
  *
  * Lee los dibujos de `tarjetas/` (PNG con líneas negras sobre fondo transparente)
- * y, por cada personaje, escribe en `public/tarjetas/` dos máscaras de 768×768:
+ * y, por cada tarjeta, escribe en `public/tarjetas/` dos máscaras de 768×768:
  *
- * - `<rol>-lineas.png`: el dibujo (cuánta "tinta" hay en cada punto).
- * - `<rol>-silueta.png`: la forma de la tarjeta, para pintarle un fondo.
+ * - `<tarjeta>-lineas.png`: el dibujo (cuánta "tinta" hay en cada punto).
+ * - `<tarjeta>-silueta.png`: la forma de la tarjeta, para pintarle un fondo.
+ *
+ * `<tarjeta>` es el rol (`seer`) o, para los disfraces de temporada,
+ * `<temporada>/<rol>` (`christmas/hunter` es el Grinch).
  *
  * La web las colorea con el tema: de día tinta oscura sobre papel claro y de
  * noche en negativo. También regenera `src/app/core/role-cards.ts` con la lista
- * de personajes que tienen tarjeta (los demás usan una provisional).
+ * de tarjetas dibujadas (las que faltan usan una provisional).
  *
  * Sin dependencias: lee y escribe los PNG con el zlib de Node.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { crc32, deflateSync, inflateSync } from 'node:zlib';
 
-/** Dibujo de cada personaje dentro de `tarjetas/`. */
+/** Dibujo de cada tarjeta dentro de `tarjetas/`. */
 const SOURCES = {
   villager: 'tarjeta_Campesino.png',
   werewolf: 'tarjeta_lobo.png',
@@ -25,6 +30,11 @@ const SOURCES = {
   hunter: 'tarjeta_Hunter.png',
   cupid: 'tarjeta_Cupido.png',
   protector: 'tarjeta_Protector.png',
+  // Navidad: Santa Claus solo existe en esta temporada; los demás son disfraces.
+  santa: 'navidad/tarjeta_Santa.png',
+  'christmas/villager': 'navidad/tarjeta_Elfo.png',
+  'christmas/hunter': 'navidad/tarjeta_Grinch.png',
+  'christmas/protector': 'navidad/tarjeta_MamaClaus.png',
 };
 
 /** Lado de las imágenes para la web (de sobra para verla grande en un móvil). */
@@ -36,32 +46,36 @@ const outDir = new URL('public/tarjetas/', root);
 mkdirSync(outDir, { recursive: true });
 
 const done = [];
-for (const [role, file] of Object.entries(SOURCES)) {
+for (const [card, file] of Object.entries(SOURCES)) {
   const source = new URL(file, srcDir);
   if (!existsSync(source)) {
-    console.warn(`· ${role}: falta tarjetas/${file}, se usará la tarjeta provisional.`);
+    console.warn(`· ${card}: falta tarjetas/${file}, se usará la tarjeta provisional.`);
     continue;
   }
   const { width, height, ink } = readPng(readFileSync(source), file);
-  if (width !== height) console.warn(`· ${role}: el dibujo no es cuadrado (${width}×${height}), se verá deformado.`);
+  if (width !== height) console.warn(`· ${card}: el dibujo no es cuadrado (${width}×${height}), se verá deformado.`);
   const shape = silhouette(ink, width, height);
   const filled = shape.reduce((sum, v) => sum + v, 0) / shape.length;
   if (filled < 0.5) {
-    console.warn(`· ${role}: el borde de la tarjeta parece abierto; el fondo no cubrirá bien el dibujo.`);
+    console.warn(`· ${card}: el borde de la tarjeta parece abierto; el fondo no cubrirá bien el dibujo.`);
   }
-  writeMask(new URL(`${role}-lineas.png`, outDir), resize(ink, width, height, SIZE), SIZE);
-  writeMask(new URL(`${role}-silueta.png`, outDir), resize(shape, width, height, SIZE), SIZE);
-  done.push(role);
-  console.log(`✓ ${role} (${file})`);
+  const lines = new URL(`${card}-lineas.png`, outDir);
+  mkdirSync(dirname(fileURLToPath(lines)), { recursive: true });
+  writeMask(lines, resize(ink, width, height, SIZE), SIZE);
+  writeMask(new URL(`${card}-silueta.png`, outDir), resize(shape, width, height, SIZE), SIZE);
+  done.push(card);
+  console.log(`✓ ${card} (${file})`);
 }
 
 writeFileSync(
   new URL('src/app/core/role-cards.ts', root),
   `// Generado por \`npm run tarjetas\` (scripts/tarjetas.mjs). No lo edites a mano.
-import type { Role } from '@lobo/game/types';
 
-/** Personajes que tienen tarjeta dibujada en public/tarjetas/. */
-export const ROLES_WITH_CARD: ReadonlySet<Role> = new Set<Role>([
+/**
+ * Tarjetas dibujadas en public/tarjetas/: \`<rol>\` o, para los disfraces de
+ * temporada, \`<temporada>/<rol>\` (ver \`cardKey\` en card-art.ts).
+ */
+export const DRAWN_CARDS: ReadonlySet<string> = new Set<string>([
 ${done.map((r) => `  '${r}',\n`).join('')}]);
 `,
 );

@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_ROOM_CONFIG } from '../src/config.js';
+import type { Season } from '../src/game/types.js';
 import { Room, type Transport } from '../src/rooms/Room.js';
 
 /** Pruebas de la sala sin red: un transporte falso guarda lo que se enviaría. */
-function makeRoom() {
+function makeRoom(season: Season | null = null) {
   const sent: { socketId: string; event: string; args: unknown[] }[] = [];
   const transport: Transport = {
     emit: (socketId, event, ...args) => {
@@ -11,7 +12,7 @@ function makeRoom() {
     },
   };
   const onEmpty = vi.fn();
-  const room = new Room('ABCDE', transport, { ...DEFAULT_ROOM_CONFIG, chatMinIntervalMs: 0 }, onEmpty);
+  const room = new Room('ABCDE', transport, { ...DEFAULT_ROOM_CONFIG, chatMinIntervalMs: 0, season }, onEmpty);
   return { room, sent, onEmpty };
 }
 
@@ -112,6 +113,27 @@ describe('Room', () => {
     room.sendChat(victim.id, 'dead', 'buuu');
     const receivers = sent.filter((m) => m.event === 'chat:message').map((m) => m.socketId);
     expect(receivers).toEqual([victim.socketId]);
+  });
+
+  it('en Navidad se reparte a Santa Claus y la temporada no cambia a mitad de partida', () => {
+    const { room } = makeRoom('christmas');
+    const players = ['Ana', 'Bea', 'Carla', 'Dani', 'Eva'].map((n, i) => room.join(n, `s${i}`));
+    expect(room.stateFor(players[0]!.id).season).toBe('christmas');
+    expect(room.stateFor(players[0]!.id).rolePreview?.composition?.powers).toEqual({ seer: 1, santa: 1 });
+
+    room.start(players[0]!.id);
+    const game = room.currentGame!;
+    const santa = players.find((p) => game.playerInfo(p.id)?.role === 'santa')!;
+    expect(room.stateFor(santa.id).season).toBe('christmas');
+    expect(room.stateFor(santa.id).game?.privateLog[0]).toMatchObject({ kind: 'gift', night: 1 });
+  });
+
+  it('fuera de temporada no hay Santa Claus', () => {
+    const { room } = makeRoom(null);
+    const players = ['Ana', 'Bea', 'Carla', 'Dani', 'Eva'].map((n, i) => room.join(n, `s${i}`));
+    room.updateSettings(players[0]!.id, { roles: { seer: 1, santa: 1 } });
+    expect(room.stateFor(players[0]!.id).season).toBeNull();
+    expect(room.stateFor(players[0]!.id).rolePreview?.composition?.powers).toEqual({ seer: 1 });
   });
 
   it('el cazador no lee la manada ni a los muertos hasta haber disparado', () => {

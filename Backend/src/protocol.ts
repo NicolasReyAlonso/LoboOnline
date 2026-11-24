@@ -7,7 +7,7 @@
  *   import { io, type Socket } from 'socket.io-client';
  *   const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(URL);
  */
-import type { Composition, Durations, GameAction, GameSettings, GameView, RoleCounts } from './game/types.js';
+import type { Composition, Durations, GameAction, GameSettings, GameView, RoleCounts, Season } from './game/types.js';
 
 export type * from './game/types.js';
 
@@ -41,6 +41,11 @@ export interface RoomState {
   rolePreview: { composition: Composition | null; error: string | null } | null;
   /** `null` mientras se está en el lobby. */
   game: GameView | null;
+  /**
+   * Temporada (personajes y disfraces). En el lobby es la de hoy; durante una
+   * partida, la de cuando empezó (no cambia a mitad de partida).
+   */
+  season: Season | null;
   /**
    * Hora del servidor (ms) al enviar el estado. El reloj de un móvil puede ir
    * desfasado: usa `serverTime - Date.now()` para corregir las cuentas atrás.

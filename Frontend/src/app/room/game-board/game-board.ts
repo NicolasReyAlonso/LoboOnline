@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, u
 import { isNightPhase, type LogEntry } from '@lobo/game/types';
 import { GameService } from '../../core/game.service';
 import { describePublic } from '../../core/log';
-import { PHASE_INFO } from '../../core/phases';
-import { ROLE_ICON, roleDescription, roleName } from '../../core/roles';
+import { phaseInfo } from '../../core/phases';
+import { roleDescription, roleIcon, roleName } from '../../core/roles';
 import { Countdown } from '../../shared/countdown/countdown';
 import { ActionPanel } from '../action-panel/action-panel';
 import { Chat } from '../chat/chat';
@@ -36,14 +36,14 @@ export class GameBoard {
   protected readonly view = computed(() => this.game.game()!);
   protected readonly me = computed(() => this.view().me);
   protected readonly action = computed(() => this.view().action);
-  protected readonly phase = computed(() => PHASE_INFO[this.view().phase]);
+  protected readonly phase = computed(() => phaseInfo(this.view().phase));
   protected readonly counter = computed(() => {
     const v = this.view();
     if (v.phase === 'ended') return `${v.night} ${v.night === 1 ? 'noche' : 'noches'}`;
     return isNightPhase(v.phase) ? `Noche ${v.night}` : `Día ${v.day}`;
   });
 
-  protected readonly icon = ROLE_ICON;
+  protected readonly roleIcon = roleIcon;
   protected readonly roleName = roleName;
   protected readonly roleDescription = roleDescription;
 

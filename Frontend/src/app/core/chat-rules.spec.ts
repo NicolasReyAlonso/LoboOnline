@@ -20,6 +20,7 @@ function state(phase: Phase | null, role: Role = 'villager', alive = true, pendi
     limits: { minPlayers: 4, maxPlayers: 20 },
     rolePreview: null,
     game,
+    season: null,
     serverTime: 0,
   };
 }
@@ -58,7 +59,7 @@ describe('reglas del chat', () => {
       const hunter = state(phase, 'hunter', false, true);
       expect(readableChannels(hunter)).toEqual(['general']);
       expect(writableChannels(hunter)).toEqual([]);
-      expect(writeBlockReason(hunter, 'dead')).toContain('disparar');
+      expect(writeBlockReason(hunter, 'dead')).toContain('primero');
     }
     expect(readableChannels(state('day_discussion', 'hunter', false, false))).toEqual(['general', 'wolves', 'dead']);
   });

@@ -3,8 +3,9 @@ import { createGame } from '../game/createGame.js';
 import { GameError } from '../game/errors.js';
 import type { Game } from '../game/Game.js';
 import { isWolf, MAX_PLAYERS, MIN_PLAYERS, planComposition } from '../game/roles.js';
+import { seasonAt } from '../game/seasons.js';
 import { DEFAULT_SETTINGS, validateSettings } from '../game/settings.js';
-import { isNightPhase, type GameAction, type GameSettings } from '../game/types.js';
+import { isNightPhase, type GameAction, type GameSettings, type Season } from '../game/types.js';
 import type {
   ChatChannel,
   ChatMessage,
@@ -21,6 +22,8 @@ export interface RoomConfig {
   emptyRoomTtlMs: number;
   maxChatHistory: number;
   chatMinIntervalMs: number;
+  /** Fuerza una temporada (`null` = ninguna). Sin definir, se decide por la fecha de hoy. */
+  season?: Season | null;
 }
 
 export interface RoomPlayer {
@@ -52,6 +55,8 @@ export class Room {
   hostId: string | null = null;
   private settings: GameSettings = structuredClone(DEFAULT_SETTINGS);
   private game: Game | null = null;
+  /** Temporada con la que empezó la partida en curso. */
+  private gameSeason: Season | null = null;
   private readonly players = new Map<string, RoomPlayer>();
   private readonly chat: Record<ChatChannel, ChatMessage[]> = { general: [], wolves: [], dead: [] };
   private readonly lastChatAt = new Map<string, number>();
@@ -75,6 +80,12 @@ export class Room {
 
   get size(): number {
     return this.players.size;
+  }
+
+  /** En el lobby, la temporada de hoy; en partida, la de cuando empezó. */
+  get season(): Season | null {
+    if (this.game) return this.gameSeason;
+    return this.config.season !== undefined ? this.config.season : seasonAt(new Date());
   }
 
   get currentGame(): Game | null {
@@ -187,7 +198,9 @@ export class Room {
     this.assertHost(byId);
     if (this.status === 'playing') throw new GameError('game_in_progress', 'La partida ya ha empezado.');
     const players = [...this.players.values()].map(({ id, name }) => ({ id, name }));
-    this.game = createGame(players, this.settings);
+    const season = this.season;
+    this.game = createGame(players, this.settings, { season });
+    this.gameSeason = season;
     // Los desconectados ya forman parte de la partida: no se les echa.
     for (const id of [...this.removalTimers.keys()]) this.clearRemovalTimer(id);
     this.chat.wolves = [];
@@ -302,6 +315,7 @@ export class Room {
       limits: { minPlayers: MIN_PLAYERS, maxPlayers: MAX_PLAYERS },
       rolePreview: this.status === 'playing' ? null : this.rolePreview(),
       game: this.game ? this.game.viewFor(playerId) : null,
+      season: this.season,
       serverTime: Date.now(),
     };
   }
@@ -325,7 +339,7 @@ export class Room {
   private rolePreview(): NonNullable<RoomState['rolePreview']> {
     const { roles, maxWolves } = this.settings;
     try {
-      return { composition: planComposition(this.players.size, roles, maxWolves), error: null };
+      return { composition: planComposition(this.players.size, roles, maxWolves, this.season), error: null };
     } catch (err) {
       return { composition: null, error: err instanceof GameError ? err.message : 'Reparto no válido.' };
     }

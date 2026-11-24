@@ -83,6 +83,19 @@ scripts/tarjetas.mjs    Los prepara para la web en public/tarjetas/
 2. Ejecuta `npm run tarjetas`. Genera las imágenes de `public/tarjetas/` y actualiza `src/app/core/role-cards.ts`.
 3. Haz commit de todo. Mientras un personaje no tenga dibujo, se usa una tarjeta provisional con su icono.
 
+Las tarjetas de Navidad van en `tarjetas/navidad/`, con estos nombres (ya están en la lista del script):
+
+| Fichero                  | Personaje                     |
+| ------------------------ | ----------------------------- |
+| `tarjeta_Santa.png`      | Santa Claus                   |
+| `tarjeta_Elfo.png`       | Elfo (el aldeano en Navidad)  |
+| `tarjeta_Grinch.png`     | Grinch (el cazador)           |
+| `tarjeta_MamaClaus.png`  | Mamá Claus (el protector)     |
+
+Un disfraz nunca usa la tarjeta del personaje de siempre: si falta su dibujo, sale la provisional con el nombre
+del disfraz. Los textos y los iconos de cada temporada están en [`core/season.ts`](src/app/core/season.ts),
+[`core/roles.ts`](src/app/core/roles.ts) y [`core/phases.ts`](src/app/core/phases.ts).
+
 ## Producción
 
 La web se publica sola en GitHub Pages con cada push a `main` (ver el README principal y

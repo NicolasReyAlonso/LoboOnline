@@ -48,6 +48,7 @@ export const settingsSchema = z.strictObject({
       hunter: count(1).optional(),
       cupid: count(1).optional(),
       protector: count(1).optional(),
+      santa: count(1).optional(),
     })
     .nullable()
     .optional(),

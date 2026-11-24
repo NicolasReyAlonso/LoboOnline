@@ -5,6 +5,9 @@
       <span class="muted small">Los elige el anfitrión</span>
     }
   </div>
+  @if (seasonText(); as label) {
+    <p class="season">{{ label }}</p>
+  }
 
   <div class="chips">
     @for (chip of chips(); track chip.key) {
@@ -18,7 +21,7 @@
   @if (editable()) {
     <div class="wolves">
       <div class="stepper">
-        <span>{{ icon.werewolf }} Máximo de lobos</span>
+        <span>{{ roleIcon('werewolf') }} Máximo de lobos</span>
         <div class="row">
           <button
             class="icon-btn"
@@ -54,13 +57,13 @@
 
     @if (!auto()) {
       <div class="custom">
-        @for (role of powers; track role) {
+        @for (role of powers(); track role) {
           <label class="check">
             <input #roleBox type="checkbox" [checked]="!!counts()[role]" (change)="toggleRole(role, roleBox.checked)" />
-            {{ icon[role] }} {{ roleName(role) }}
+            {{ roleIcon(role) }} {{ roleName(role) }}
           </label>
         }
-        <p class="muted small">El resto de jugadores serán aldeanos.</p>
+        <p class="muted small">El resto de jugadores serán {{ villagers() }}.</p>
       </div>
     }
 

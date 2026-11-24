@@ -1,3 +1,4 @@
+import { parseSeasonOverride } from './game/seasons.js';
 import type { RoomConfig } from './rooms/Room.js';
 
 export interface ServerConfig {
@@ -19,6 +20,8 @@ export const DEFAULT_ROOM_CONFIG: ServerConfig['rooms'] = {
  * Variables de entorno:
  * - `PORT` (por defecto 3000)
  * - `CORS_ORIGIN`: lista separada por comas, p. ej. `https://lobo.example.com,http://localhost:5173`
+ * - `SEASON`: fuerza una temporada (`christmas`) o ninguna (`none`), p. ej. para
+ *   probar la de Navidad en otra época. Por defecto se decide por la fecha.
  */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   const origins = (env.CORS_ORIGIN ?? '*')
@@ -28,6 +31,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   return {
     port: Number(env.PORT) || 3000,
     corsOrigin: origins.length === 0 || origins.includes('*') ? '*' : origins,
-    rooms: { ...DEFAULT_ROOM_CONFIG },
+    rooms: { ...DEFAULT_ROOM_CONFIG, season: parseSeasonOverride(env.SEASON) },
   };
 }

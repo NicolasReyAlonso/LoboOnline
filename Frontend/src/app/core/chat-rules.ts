@@ -51,7 +51,7 @@ export function writeBlockReason(state: RoomState | null, channel: ChatChannel):
       if (!isWolfRole(me.role)) return 'Solo para lobos.';
       return night ? null : 'La manada solo se reúne de noche.';
     case 'dead':
-      if (me.pendingShot) return 'Primero tienes que disparar.';
+      if (me.pendingShot) return 'Aún no: primero te toca llevarte a alguien contigo.';
       return me.alive ? 'Solo para los muertos.' : null;
   }
 }

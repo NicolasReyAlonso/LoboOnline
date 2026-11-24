@@ -19,7 +19,7 @@
           [attr.aria-expanded]="showRoleInfo()"
           (click)="showRoleInfo.set(!showRoleInfo())"
         >
-          <span class="role-icon" aria-hidden="true">{{ icon[me.role] }}</span>
+          <span class="role-icon" aria-hidden="true">{{ roleIcon(me.role) }}</span>
           <span class="role-text">
             <span class="muted small">Tu personaje</span>
             <strong>{{ roleName(me.role) }}</strong>
