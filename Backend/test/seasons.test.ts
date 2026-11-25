@@ -40,16 +40,18 @@ describe('temporadas', () => {
 });
 
 describe('Papá Noel en el reparto', () => {
+  const wolves = { minWolves: 1, maxWolves: 2 };
+
   it('solo sale en Navidad, y entonces está en el reparto automático desde 5 jugadores', () => {
     expect(defaultPowers(5, 'christmas')).toMatchObject({ santa: 1 });
     expect(defaultPowers(4, 'christmas').santa).toBeUndefined();
     expect(defaultPowers(10, null).santa).toBeUndefined();
-    expect(planComposition(6, null, 2, 'christmas').powers.santa).toBe(1);
+    expect(planComposition(6, { ...wolves, roles: null }, 'christmas').powers.santa).toBe(1);
   });
 
   it('si se eligió y ya no es Navidad, simplemente no se reparte', () => {
-    expect(planComposition(6, { seer: 1, santa: 1 }, 2, 'christmas').powers).toEqual({ seer: 1, santa: 1 });
-    expect(planComposition(6, { seer: 1, santa: 1 }, 2, null).powers).toEqual({ seer: 1 });
+    expect(planComposition(6, { ...wolves, roles: { seer: 1, santa: 1 } }, 'christmas').powers).toEqual({ seer: 1, santa: 1 });
+    expect(planComposition(6, { ...wolves, roles: { seer: 1, santa: 1 } }, null).powers).toEqual({ seer: 1 });
     const players = Array.from({ length: 6 }, (_, i) => ({ id: `p${i}`, name: `J${i}` }));
     const game = createGame(players, { ...DEFAULT_SETTINGS, roles: { santa: 1 } }, { season: null });
     expect(players.some((p) => game.playerInfo(p.id)?.role === 'santa')).toBe(false);

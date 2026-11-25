@@ -1,5 +1,14 @@
 import { GameError } from './errors.js';
-import { POWER_ROLES, ROLES, type Composition, type Role, type RoleCounts, type Season, type Team } from './types.js';
+import {
+  POWER_ROLES,
+  ROLES,
+  type Composition,
+  type GameSettings,
+  type Role,
+  type RoleCounts,
+  type Season,
+  type Team,
+} from './types.js';
 
 export const MIN_PLAYERS = 4;
 export const MAX_PLAYERS = 20;
@@ -107,9 +116,20 @@ export function checkRoleCounts(counts: RoleCounts): void {
   }
 }
 
-export function checkMaxWolves(maxWolves: number): void {
-  if (!Number.isInteger(maxWolves) || maxWolves < 1 || maxWolves > MAX_WOLVES) {
-    throw new GameError('invalid_settings', `El máximo de lobos tiene que estar entre 1 y ${MAX_WOLVES}.`);
+/** Ajustes de los que depende el reparto. */
+export type CompositionSettings = Pick<GameSettings, 'roles' | 'minWolves' | 'maxWolves'>;
+
+export function checkWolves(minWolves: number, maxWolves: number): void {
+  for (const [label, n] of [
+    ['mínimo', minWolves],
+    ['máximo', maxWolves],
+  ] as const) {
+    if (!Number.isInteger(n) || n < 1 || n > MAX_WOLVES) {
+      throw new GameError('invalid_settings', `El ${label} de lobos tiene que estar entre 1 y ${MAX_WOLVES}.`);
+    }
+  }
+  if (minWolves > maxWolves) {
+    throw new GameError('invalid_settings', 'El mínimo de lobos no puede ser mayor que el máximo.');
   }
 }
 
@@ -118,14 +138,14 @@ export function checkMaxWolves(maxWolves: number): void {
  * posible. El máximo de lobos se recorta para que:
  * - haya siempre menos lobos que no-lobos, y
  * - quepan todos los personajes con poderes.
+ * Si el mínimo no cabe, baja hasta ese máximo recortado.
  *
  * Los personajes de otra temporada se quitan sin avisar: si el anfitrión eligió
  * a Papá Noel y la Navidad acaba antes de empezar, simplemente no sale.
  */
 export function planComposition(
   players: number,
-  roles: RoleCounts | null,
-  maxWolves: number,
+  { roles, minWolves, maxWolves }: CompositionSettings,
   season: Season | null = null,
 ): Composition {
   if (players < MIN_PLAYERS) {
@@ -134,7 +154,7 @@ export function planComposition(
   if (players > MAX_PLAYERS) {
     throw new GameError('too_many_players', `Como mucho pueden jugar ${MAX_PLAYERS} personas.`);
   }
-  checkMaxWolves(maxWolves);
+  checkWolves(minWolves, maxWolves);
   const chosen = roles ?? defaultPowers(players, season);
   checkRoleCounts(chosen);
   const powers: RoleCounts = {};
@@ -150,7 +170,7 @@ export function planComposition(
     );
   }
   const max = Math.min(maxWolves, Math.floor((players - 1) / 2), players - powerCount);
-  return { powers: { ...powers }, wolves: { min: 1, max } };
+  return { powers: { ...powers }, wolves: { min: Math.min(minWolves, max), max } };
 }
 
 /** Sortea el número de lobos dentro de lo permitido y devuelve las cartas (sin barajar). */

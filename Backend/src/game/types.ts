@@ -107,9 +107,11 @@ export interface Durations {
 
 export interface GameSettings {
   /**
-   * Máximo de lobos. En cada partida se sortean entre 1 y este número (recortado
-   * si no caben con los jugadores que hay), y nadie sabe cuántos han salido.
+   * Mínimo y máximo de lobos. En cada partida se sortea cuántos hay entre estos
+   * dos números (recortados si no caben con los jugadores que hay), y nadie
+   * sabe cuántos han salido.
    */
+  minWolves: number;
   maxWolves: number;
   /** Personajes con poderes; `null` = automático según el número de jugadores. */
   roles: RoleCounts | null;

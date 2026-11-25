@@ -183,6 +183,7 @@ export class Room {
       if (value !== undefined) durations[key as keyof typeof durations] = value;
     }
     const next: GameSettings = {
+      minWolves: patch.minWolves ?? this.settings.minWolves,
       maxWolves: patch.maxWolves ?? this.settings.maxWolves,
       roles: patch.roles === undefined ? this.settings.roles : patch.roles,
       revealRoleOnDeath: patch.revealRoleOnDeath ?? this.settings.revealRoleOnDeath,
@@ -337,9 +338,8 @@ export class Room {
   // -------------------------------------------------------------------------
 
   private rolePreview(): NonNullable<RoomState['rolePreview']> {
-    const { roles, maxWolves } = this.settings;
     try {
-      return { composition: planComposition(this.players.size, roles, maxWolves, this.season), error: null };
+      return { composition: planComposition(this.players.size, this.settings, this.season), error: null };
     } catch (err) {
       return { composition: null, error: err instanceof GameError ? err.message : 'Reparto no válido.' };
     }

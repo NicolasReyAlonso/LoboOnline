@@ -73,6 +73,8 @@ export interface Session {
 }
 
 export interface SettingsPatch {
+  /** Tiene que quedar `minWolves <= maxWolves`: si cambias uno, manda también el otro si hace falta. */
+  minWolves?: number;
   maxWolves?: number;
   roles?: RoleCounts | null;
   revealRoleOnDeath?: boolean;

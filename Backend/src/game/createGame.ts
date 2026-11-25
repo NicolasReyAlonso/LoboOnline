@@ -14,7 +14,7 @@ export function createGame(
   options: GameOptions & { season?: Season | null } = {},
 ): Game {
   validateSettings(settings);
-  const composition = planComposition(players.length, settings.roles, settings.maxWolves, options.season ?? null);
+  const composition = planComposition(players.length, settings, options.season ?? null);
   const roles = shuffle(dealRoles(players.length, composition, options.rng), options.rng);
   const game = new Game(
     players.map((p, i) => ({ id: p.id, name: p.name, role: roles[i] ?? 'villager' })),

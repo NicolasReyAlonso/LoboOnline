@@ -63,10 +63,12 @@ empezó.
 Le puede tocar varias veces la misma persona. Si el anfitrión lo eligió y la temporada acaba antes de empezar,
 simplemente no se reparte.
 
-**Lobos secretos:** el anfitrión elige el **máximo** de lobos (`maxWolves`, de 1 a 6, por defecto 2). Al empezar
-cada partida se sortea cuántos hay, entre 1 y ese máximo. El máximo se recorta solo si no cabe: siempre tiene que
-haber menos lobos que no-lobos, y sitio para los personajes con poderes. Todo el mundo ve "entre 1 y N lobos", pero
-nunca el número exacto. Por eso tampoco se publica cuántos aldeanos hay, porque de ahí se deduciría.
+**Lobos secretos:** el anfitrión elige el **mínimo** y el **máximo** de lobos (`minWolves` y `maxWolves`, de 1 a
+6, por defecto 1 y 2; el mínimo no puede pasar del máximo). Al empezar cada partida se sortea cuántos hay, entre esos
+dos números. El máximo se recorta solo si no cabe: siempre tiene que haber menos lobos que no-lobos, y sitio para los
+personajes con poderes. Si el mínimo no cabe, baja hasta ese máximo recortado. Todo el mundo ve "entre M y N lobos",
+pero nunca el número exacto (salvo que el mínimo y el máximo coincidan). Por eso tampoco se publica cuántos aldeanos
+hay, porque de ahí se deduciría.
 
 **Personajes con poderes:** el anfitrión los elige, o se ponen solos según el número de jugadores. Los aldeanos
 rellenan el resto.
@@ -168,7 +170,7 @@ Con socket.io-client ≥ 4.6 se puede usar `await socket.emitWithAck(evento, pay
   status: 'lobby' | 'playing' | 'ended',
   hostId, youId,
   players: [{ id, name, connected, isHost }],
-  settings: { maxWolves, roles, revealRoleOnDeath, deadSeeEverything, durations: {...} },
+  settings: { minWolves, maxWolves, roles, revealRoleOnDeath, deadSeeEverything, durations: {...} },
   limits: { minPlayers: 4, maxPlayers: 20 },
   rolePreview: { composition: Composition | null, error: string | null } | null,
   game: GameView | null,
@@ -183,6 +185,7 @@ Envía solo lo que cambie:
 
 ```ts
 {
+  minWolves?: 1..6,                   // tiene que quedar minWolves <= maxWolves
   maxWolves?: 1..6,
   roles?: { seer?: 0|1, witch?: 0|1, hunter?: 0|1, cupid?: 0|1, protector?: 0|1, santa?: 0|1 } | null,  // null = automático
   revealRoleOnDeath?: boolean,

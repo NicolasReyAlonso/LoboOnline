@@ -40,6 +40,7 @@ const count = (max: number) => z.number().int().min(0).max(max);
 const seconds = z.number().int().positive();
 
 export const settingsSchema = z.strictObject({
+  minWolves: z.number().int().min(1).max(MAX_WOLVES).optional(),
   maxWolves: z.number().int().min(1).max(MAX_WOLVES).optional(),
   roles: z
     .strictObject({

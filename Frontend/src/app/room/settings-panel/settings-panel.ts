@@ -7,6 +7,7 @@ import { seasonLabel } from '../../core/season';
 import { availablePowers, compositionChips, roleIcon, roleName, villagersName } from '../../core/roles';
 
 type Option = 'revealRoleOnDeath' | 'deadSeeEverything';
+type WolvesLimit = 'minWolves' | 'maxWolves';
 
 /** Ajustes de la partida. El anfitrión los edita; el resto solo los ve. */
 @Component({
@@ -35,6 +36,14 @@ export class SettingsPanel {
     return composition ? compositionChips(composition) : [];
   });
 
+  /** Explicación del mínimo y el máximo elegidos. */
+  protected readonly wolvesText = computed(() => {
+    const { minWolves: min, maxWolves: max } = this.settings();
+    return min === max
+      ? `Siempre habrá ${max} ${max === 1 ? 'lobo' : 'lobos'}, y todos lo sabrán.`
+      : `En cada partida se sortea cuántos lobos hay, entre ${min} y ${max}. Nadie sabrá cuántos son.`;
+  });
+
   /** Si con los jugadores actuales caben menos lobos de los elegidos, se avisa. */
   protected readonly wolvesNote = computed(() => {
     const max = this.preview()?.composition?.wolves.max;
@@ -50,6 +59,10 @@ export class SettingsPanel {
   /** Los de la temporada actual (Papá Noel solo aparece en Navidad). */
   protected readonly powers = computed(() => availablePowers(this.season()));
   protected readonly maxWolvesLimit = MAX_WOLVES;
+  protected readonly wolvesSteppers: readonly { key: WolvesLimit; label: string; name: string }[] = [
+    { key: 'minWolves', label: 'Mínimo de lobos', name: 'el mínimo' },
+    { key: 'maxWolves', label: 'Máximo de lobos', name: 'el máximo' },
+  ];
   protected readonly roleIcon = roleIcon;
   protected readonly roleName = roleName;
   protected readonly villagers = computed(() => villagersName(this.season()).toLowerCase());
@@ -67,9 +80,15 @@ export class SettingsPanel {
     { key: 'deadSeeEverything', label: 'Los muertos lo ven todo' },
   ];
 
-  protected setMaxWolves(n: number): void {
+  /** Cambia el mínimo o el máximo de lobos; si se cruzan, arrastra al otro. */
+  protected setWolves(key: WolvesLimit, n: number): void {
     if (n < 1 || n > MAX_WOLVES) return;
-    void this.game.updateSettings({ maxWolves: n });
+    const { minWolves, maxWolves } = this.settings();
+    void this.game.updateSettings(
+      key === 'minWolves'
+        ? { minWolves: n, maxWolves: Math.max(maxWolves, n) }
+        : { maxWolves: n, minWolves: Math.min(minWolves, n) },
+    );
   }
 
   protected setAuto(auto: boolean): void {

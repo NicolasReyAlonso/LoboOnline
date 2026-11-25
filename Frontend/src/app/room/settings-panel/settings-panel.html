@@ -20,30 +20,32 @@
 
   @if (editable()) {
     <div class="wolves">
-      <div class="stepper">
-        <span>{{ roleIcon('werewolf') }} Máximo de lobos</span>
-        <div class="row">
-          <button
-            class="icon-btn"
-            aria-label="Un lobo menos"
-            [disabled]="settings().maxWolves <= 1"
-            (click)="setMaxWolves(settings().maxWolves - 1)"
-          >
-            −
-          </button>
-          <strong>{{ settings().maxWolves }}</strong>
-          <button
-            class="icon-btn"
-            aria-label="Un lobo más"
-            [disabled]="settings().maxWolves >= maxWolvesLimit"
-            (click)="setMaxWolves(settings().maxWolves + 1)"
-          >
-            +
-          </button>
+      @for (s of wolvesSteppers; track s.key) {
+        <div class="stepper">
+          <span>{{ roleIcon('werewolf') }} {{ s.label }}</span>
+          <div class="row">
+            <button
+              class="icon-btn"
+              [attr.aria-label]="'Bajar ' + s.name + ' de lobos'"
+              [disabled]="settings()[s.key] <= 1"
+              (click)="setWolves(s.key, settings()[s.key] - 1)"
+            >
+              −
+            </button>
+            <strong>{{ settings()[s.key] }}</strong>
+            <button
+              class="icon-btn"
+              [attr.aria-label]="'Subir ' + s.name + ' de lobos'"
+              [disabled]="settings()[s.key] >= maxWolvesLimit"
+              (click)="setWolves(s.key, settings()[s.key] + 1)"
+            >
+              +
+            </button>
+          </div>
         </div>
-      </div>
+      }
       <p class="muted small">
-        En cada partida se sortea cuántos lobos hay, entre 1 y {{ settings().maxWolves }}. Nadie sabrá cuántos son.
+        {{ wolvesText() }}
         @if (wolvesNote(); as note) {
           <strong>{{ note }}</strong>
         }

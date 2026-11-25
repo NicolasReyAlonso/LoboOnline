@@ -1,8 +1,9 @@
 import { GameError } from './errors.js';
-import { checkMaxWolves, checkRoleCounts } from './roles.js';
+import { checkRoleCounts, checkWolves } from './roles.js';
 import type { Durations, GameSettings } from './types.js';
 
 export const DEFAULT_SETTINGS: GameSettings = {
+  minWolves: 1,
   maxWolves: 2,
   roles: null,
   revealRoleOnDeath: true,
@@ -41,6 +42,6 @@ export function validateSettings(settings: GameSettings): void {
   if (settings.durations.phantomMin > settings.durations.phantomMax) {
     throw new GameError('invalid_settings', 'phantomMin no puede ser mayor que phantomMax.');
   }
-  checkMaxWolves(settings.maxWolves);
+  checkWolves(settings.minWolves, settings.maxWolves);
   if (settings.roles) checkRoleCounts(settings.roles);
 }

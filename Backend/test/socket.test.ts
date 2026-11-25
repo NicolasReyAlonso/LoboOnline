@@ -142,6 +142,15 @@ describe('servidor', () => {
     expect(state.settings.roles).toEqual({ seer: 1 });
     expect(state.settings.durations.vote).toBe(60); // el resto se mantiene
     expect(await host.emitWithAck('room:settings', { durations: { vote: 99999 } })).toMatchObject({ ok: false });
+
+    // Mínimo de lobos: nunca por encima del máximo.
+    expect(await host.emitWithAck('room:settings', { minWolves: 4 })).toMatchObject({
+      ok: false,
+      code: 'invalid_settings',
+    });
+    ok(await host.emitWithAck('room:settings', { minWolves: 2 }));
+    const withMin = await waitForState(guests[1]!, (s) => s.settings.minWolves === 2);
+    expect(withMin.settings.maxWolves).toBe(3);
   });
 
   it('juega una noche completa por sockets', async () => {
