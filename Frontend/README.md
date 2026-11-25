@@ -85,15 +85,17 @@ scripts/tarjetas.mjs    Los prepara para la web en public/tarjetas/
 
 Las tarjetas de Navidad van en `tarjetas/tarjetas_christmas/`, con estos nombres (ya están en la lista del script):
 
-| Fichero                    | Personaje                     |
-| -------------------------- | ----------------------------- |
-| `tarjeta_santa_claus.png`  | Papá Noel                     |
-| `tarjeta_elfo.png`         | Elfo (el aldeano en Navidad)  |
-| `tarjeta_grinch.png`       | Grinch (el cazador)           |
-| `tarjeta_mama_claus.png`   | Mamá Claus (el protector)     |
+| Fichero                    | Personaje                        |
+| -------------------------- | -------------------------------- |
+| `tarjeta_santa_claus.png`  | Papá Noel                        |
+| `tarjeta rudolf.png`       | Lobo (mismo nombre, otro dibujo) |
+| `tarjeta_elfo.png`         | Elfo (el aldeano en Navidad)     |
+| `tarjeta_grinch.png`       | Grinch (el cazador)              |
+| `tarjeta_mama_claus.png`   | Mamá Claus (el protector)        |
 
 Un disfraz nunca usa la tarjeta del personaje de siempre: si falta su dibujo, sale la provisional con el nombre
-del disfraz. Los textos y los iconos de cada temporada están en [`core/season.ts`](src/app/core/season.ts),
+del disfraz. Un personaje que no se disfraza (como el lobo) puede tener igualmente un dibujo de temporada: si está
+en la lista del script, se usa en esa temporada; si no, sale su tarjeta de siempre. Los textos y los iconos de cada temporada están en [`core/season.ts`](src/app/core/season.ts),
 [`core/roles.ts`](src/app/core/roles.ts) y [`core/phases.ts`](src/app/core/phases.ts).
 
 ## Producción

@@ -13,4 +13,5 @@ export const DRAWN_CARDS: ReadonlySet<string> = new Set<string>([
   'cupid',
   'protector',
   'santa',
+  'christmas/werewolf',
 ]);

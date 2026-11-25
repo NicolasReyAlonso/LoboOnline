@@ -6,11 +6,14 @@ import { roleIcon, roleName } from '../../core/roles';
 import { activeSeason } from '../../core/season';
 
 /**
- * Qué tarjeta corresponde a un personaje: la suya (`seer`) o, si va disfrazado
- * en la temporada, la del disfraz (`christmas/hunter`, el Grinch).
+ * Qué tarjeta corresponde a un personaje: la de la temporada si va disfrazado
+ * (`christmas/hunter`, el Grinch) o si tiene un dibujo de temporada aunque no
+ * cambie de nombre (`christmas/werewolf`); si no, la suya de siempre (`seer`).
  */
 export function cardKey(role: Role, season: Season | null): string {
-  return hasSkin(role, season) ? `${season}/${role}` : role;
+  if (!season) return role;
+  const seasonal = `${season}/${role}`;
+  return hasSkin(role, season) || DRAWN_CARDS.has(seasonal) ? seasonal : role;
 }
 
 /** `url(...)` absoluta, para que funcione igual en local y en GitHub Pages (/LoboOnline/). */

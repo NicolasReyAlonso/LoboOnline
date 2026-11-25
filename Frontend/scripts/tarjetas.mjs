@@ -7,7 +7,7 @@
  * - `<tarjeta>-lineas.png`: el dibujo (cuánta "tinta" hay en cada punto).
  * - `<tarjeta>-silueta.png`: la forma de la tarjeta, para pintarle un fondo.
  *
- * `<tarjeta>` es el rol (`seer`) o, para los disfraces de temporada,
+ * `<tarjeta>` es el rol (`seer`) o, para las tarjetas de temporada,
  * `<temporada>/<rol>` (`christmas/hunter` es el Grinch).
  *
  * La web las colorea con el tema: de día tinta oscura sobre papel claro y de
@@ -30,8 +30,10 @@ const SOURCES = {
   hunter: 'tarjetas_base/tarjeta_Hunter.png',
   cupid: 'tarjetas_base/tarjeta_Cupido.png',
   protector: 'tarjetas_base/tarjeta_Protector.png',
-  // Navidad: Papá Noel solo existe en esta temporada; los demás son disfraces.
+  // Navidad: Papá Noel solo existe en esta temporada; el lobo solo cambia de dibujo
+  // y los demás son disfraces (cambian también de nombre).
   santa: 'tarjetas_christmas/tarjeta_santa_claus.png',
+  'christmas/werewolf': 'tarjetas_christmas/tarjeta rudolf.png',
   'christmas/villager': 'tarjetas_christmas/tarjeta_elfo.png',
   'christmas/hunter': 'tarjetas_christmas/tarjeta_grinch.png',
   'christmas/protector': 'tarjetas_christmas/tarjeta_mama_claus.png',
@@ -72,7 +74,7 @@ writeFileSync(
   `// Generado por \`npm run tarjetas\` (scripts/tarjetas.mjs). No lo edites a mano.
 
 /**
- * Tarjetas dibujadas en public/tarjetas/: \`<rol>\` o, para los disfraces de
+ * Tarjetas dibujadas en public/tarjetas/: \`<rol>\` o, para las tarjetas de
  * temporada, \`<temporada>/<rol>\` (ver \`cardKey\` en card-art.ts).
  */
 export const DRAWN_CARDS: ReadonlySet<string> = new Set<string>([

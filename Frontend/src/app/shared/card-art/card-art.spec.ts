@@ -45,6 +45,9 @@ describe('CardArt', () => {
     expect(cardKey('hunter', 'christmas')).toBe('christmas/hunter');
     expect(cardKey('seer', 'christmas')).toBe('seer');
     expect(cardKey('hunter', null)).toBe('hunter');
+    // El lobo se sigue llamando Lobo, pero tiene dibujo de Navidad.
+    expect(cardKey('werewolf', 'christmas')).toBe('christmas/werewolf');
+    expect(cardKey('werewolf', null)).toBe('werewolf');
 
     activeSeason.set('christmas');
     const grinch = render('hunter');
