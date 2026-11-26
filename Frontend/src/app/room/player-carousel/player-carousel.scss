@@ -1,0 +1,91 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.carousel {
+  position: relative;
+}
+
+.track {
+  display: flex;
+  gap: var(--card-gap, 16px);
+  margin: 0;
+  // Hueco arriba para que la tarjeta elegida pueda subir sin cortarse.
+  padding: 14px 4px 10px;
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 4px;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  li {
+    flex: none;
+    scroll-snap-align: start;
+  }
+}
+
+// Los bordes se difuminan cuando hay más tarjetas por ese lado.
+.fade-start .track {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 48px);
+  mask-image: linear-gradient(to right, transparent, #000 48px);
+}
+
+.fade-end .track {
+  -webkit-mask-image: linear-gradient(to left, transparent, #000 48px);
+  mask-image: linear-gradient(to left, transparent, #000 48px);
+}
+
+.fade-start.fade-end .track {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
+.nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  translate: 0 -50%;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: opacity 0.2s ease;
+
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  // En pantallas táctiles se desliza con el dedo.
+  @media (pointer: coarse) {
+    display: none;
+  }
+}
+
+.prev {
+  left: -6px;
+}
+
+.next {
+  right: -6px;
+}
+
+.empty {
+  padding: 24px 0;
+}

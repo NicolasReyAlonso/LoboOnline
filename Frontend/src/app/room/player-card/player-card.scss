@@ -1,0 +1,200 @@
+:host {
+  display: block;
+  width: var(--card-w, 180px);
+  container-type: inline-size;
+}
+
+.pcard {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  border-radius: clamp(8px, 8cqw, 16px);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+  transition:
+    transform 0.18s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.4s ease;
+
+  &.pickable {
+    border-color: var(--accent);
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-4px);
+    }
+  }
+
+  &.selected,
+  &.voted {
+    border-color: var(--accent);
+    box-shadow:
+      0 0 0 3px var(--accent),
+      0 0 26px color-mix(in srgb, var(--accent) 60%, transparent);
+    transform: translateY(-6px);
+  }
+
+  &.dead {
+    .art {
+      filter: grayscale(1) brightness(0.5);
+    }
+
+    .name-text {
+      text-decoration: line-through;
+    }
+  }
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.6s ease;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 40cqw;
+}
+
+.skull {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  font-size: 34cqw;
+  line-height: 1;
+  translate: -50% -50%;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
+}
+
+.badges {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: max(14px, 11cqw);
+  line-height: 1;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
+}
+
+// Las caras de quienes le votan, apiladas arriba a la derecha.
+.voters {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+
+  img,
+  .initial {
+    width: max(18px, 14cqw);
+    height: max(18px, 14cqw);
+    margin-left: -6px;
+    border: 2px solid #111;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: 50% 30%;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+
+  .initial {
+    display: grid;
+    place-items: center;
+    background: #555;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+}
+
+.count {
+  display: grid;
+  place-items: center;
+  min-width: max(18px, 14cqw);
+  height: max(18px, 14cqw);
+  margin-left: 2px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--danger);
+  font-size: max(11px, 8cqw);
+  font-weight: 800;
+}
+
+.label {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 28% 8px 8px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.82));
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: max(13px, 9cqw);
+  font-weight: 700;
+
+  .tag {
+    flex-shrink: 0;
+  }
+}
+
+.name-text,
+.role {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role {
+  font-size: max(11px, 7.5cqw);
+  opacity: 0.9;
+
+  &.wolf {
+    color: #ff8a94;
+    font-weight: 700;
+  }
+}
+
+// Tarjeta pequeña (la tuya en el móvil): solo la cara.
+@container (max-width: 90px) {
+  .label,
+  .voters .initial,
+  .voters img {
+    display: none;
+  }
+
+  .badges {
+    top: 3px;
+    left: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcard {
+    transition: none;
+  }
+}

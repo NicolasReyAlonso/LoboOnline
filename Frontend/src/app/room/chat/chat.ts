@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import type { ChatChannel } from '@lobo/protocol';
-import { avatarColor } from '../../core/avatar';
+import { avatarColor, avatarUrl } from '../../core/avatar';
 import { CHANNEL_INFO, readableChannels, writableChannels, writeBlockReason } from '../../core/chat-rules';
 import { GameService } from '../../core/game.service';
 
@@ -27,6 +27,7 @@ export class Chat {
   protected readonly game = inject(GameService);
   protected readonly info = CHANNEL_INFO;
   protected readonly color = avatarColor;
+  protected readonly avatarUrl = avatarUrl;
 
   protected readonly channels = computed(() => readableChannels(this.game.state()));
   private readonly chosen = signal<ChatChannel>('general');

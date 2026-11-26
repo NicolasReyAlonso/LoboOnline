@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { avatarColor, initial } from '../../core/avatar';
+import { AVATAR_NAMES, avatarUrl } from '../../core/avatar';
 import { GameService } from '../../core/game.service';
 import { ToastService } from '../../core/toast.service';
 import { Chat } from '../chat/chat';
@@ -17,8 +17,8 @@ export class Lobby {
   private readonly toasts = inject(ToastService);
 
   protected readonly state = computed(() => this.game.state()!);
-  protected readonly color = avatarColor;
-  protected readonly initial = initial;
+  protected readonly avatarUrl = avatarUrl;
+  protected readonly avatarName = AVATAR_NAMES;
 
   protected readonly missing = computed(() => Math.max(0, this.state().limits.minPlayers - this.state().players.length));
 

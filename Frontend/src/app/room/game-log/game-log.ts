@@ -1,9 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { GameService } from '../../core/game.service';
 import { describePrivate, describePublic } from '../../core/log';
 import { compositionChips } from '../../core/roles';
 
-/** Reparto, tus secretos y la crónica (lo más reciente primero). */
+export type LogSection = 'composition' | 'chronicle';
+
+/**
+ * - `composition`: qué personajes hay en la partida.
+ * - `chronicle`: lo que solo sabes tú y la crónica (lo más reciente primero).
+ */
 @Component({
   selector: 'app-game-log',
   templateUrl: './game-log.html',
@@ -11,6 +16,7 @@ import { compositionChips } from '../../core/roles';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameLog {
+  readonly section = input.required<LogSection>();
   private readonly game = inject(GameService);
   private readonly view = computed(() => this.game.game()!);
   private readonly nameOf = (id: string) => this.game.nameOf(id);

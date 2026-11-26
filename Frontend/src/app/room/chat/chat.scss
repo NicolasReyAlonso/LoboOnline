@@ -67,6 +67,16 @@
   }
 }
 
+.mini {
+  width: 22px;
+  height: 22px;
+  margin-right: 6px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  vertical-align: -6px;
+}
+
 .author {
   margin-right: 6px;
   font-weight: 700;

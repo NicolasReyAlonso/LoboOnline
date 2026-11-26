@@ -1,0 +1,44 @@
+<div class="backdrop" (click)="close()" aria-hidden="true"></div>
+<section class="dialog card" role="dialog" aria-modal="true" aria-labelledby="avatar-title">
+  <header class="head">
+    <div>
+      <h2 id="avatar-title">Elige tu avatar</h2>
+      <p class="muted small">Así te verán los demás en la partida. Los que están en gris ya tienen dueño.</p>
+    </div>
+    @if (mine(); as m) {
+      <img class="current" [src]="url(m.id)" [alt]="'Tu avatar: ' + m.name" />
+    }
+  </header>
+
+  <ul class="grid">
+    @for (o of options(); track o.id) {
+      <li>
+        <button
+          type="button"
+          class="option"
+          [class.mine]="o.mine"
+          [class.taken]="!!o.takenBy"
+          [disabled]="!!o.takenBy || busy()"
+          [attr.aria-pressed]="o.mine"
+          [attr.aria-label]="o.name + (o.mine ? ' (el tuyo)' : o.takenBy ? ' (lo tiene ' + o.takenBy + ')' : '')"
+          (click)="choose(o.id)"
+        >
+          <img [src]="url(o.id)" alt="" loading="lazy" />
+          <span class="label">
+            @if (o.mine) {
+              ✓ Tú
+            } @else if (o.takenBy) {
+              {{ o.takenBy }}
+            } @else {
+              {{ o.name }}
+            }
+          </span>
+        </button>
+      </li>
+    }
+  </ul>
+
+  <footer class="foot">
+    <button class="btn btn-primary btn-lg" type="button" (click)="close()">Listo</button>
+  </footer>
+</section>

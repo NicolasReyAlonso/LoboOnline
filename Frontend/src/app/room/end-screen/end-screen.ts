@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { avatarColor, initial } from '../../core/avatar';
+import { avatarUrl } from '../../core/avatar';
 import { GameService } from '../../core/game.service';
 import { isWolfRole, roleIcon, roleName, SIDE_INFO } from '../../core/roles';
 
@@ -48,6 +48,8 @@ export class EndScreen {
     }));
   });
 
-  protected readonly color = avatarColor;
-  protected readonly initial = initial;
+  protected avatar(id: string): string | null {
+    const avatar = this.game.avatarOf(id);
+    return avatar ? avatarUrl(avatar) : null;
+  }
 }

@@ -16,7 +16,20 @@
       <ul class="player-list">
         @for (p of state().players; track p.id) {
           <li [class.offline]="!p.connected">
-            <span class="avatar" [style.background]="color(p.name)">{{ initial(p.name) }}</span>
+            @if (p.id === state().youId) {
+              <button
+                type="button"
+                class="avatar-btn"
+                title="Cambiar de avatar"
+                [attr.aria-label]="'Tu avatar: ' + avatarName[p.avatar] + '. Cambiar'"
+                (click)="game.pickingAvatar.set(true)"
+              >
+                <img class="avatar" [src]="avatarUrl(p.avatar)" alt="" />
+                <span class="edit" aria-hidden="true">✎</span>
+              </button>
+            } @else {
+              <img class="avatar" [src]="avatarUrl(p.avatar)" [alt]="avatarName[p.avatar]" />
+            }
             <span class="name">
               {{ p.name }}
               @if (p.id === state().youId) {

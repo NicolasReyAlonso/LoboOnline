@@ -5,6 +5,9 @@
     } @else {
       <app-game-board />
     }
+    @if (picking()) {
+      <app-avatar-picker />
+    }
   }
   @case ('connecting') {
     <main class="page center-page">

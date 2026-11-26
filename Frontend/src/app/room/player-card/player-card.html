@@ -1,0 +1,63 @@
+@let c = card();
+@let p = c.player;
+<button
+  type="button"
+  class="pcard"
+  [class.dead]="!p.alive"
+  [class.me]="c.me"
+  [class.pickable]="c.pickable"
+  [class.selected]="c.selected"
+  [class.voted]="c.voted"
+  [attr.aria-disabled]="!c.pickable"
+  [attr.aria-pressed]="c.pickable ? c.selected : null"
+  [attr.aria-label]="ariaLabel()"
+  [title]="votersText()"
+  (click)="onClick()"
+>
+  @if (c.avatar; as avatar) {
+    <img class="art" [src]="url(avatar)" alt="" />
+  } @else {
+    <span class="art placeholder" aria-hidden="true">👤</span>
+  }
+
+  @if (!p.alive) {
+    <span class="skull" aria-hidden="true">💀</span>
+  }
+
+  <span class="badges" aria-hidden="true">
+    @if (p.lover) {
+      <span>💘</span>
+    }
+    @if (c.ready) {
+      <span>✋</span>
+    }
+    @if (c.offline) {
+      <span>📴</span>
+    }
+  </span>
+
+  @if (c.voters.length) {
+    <span class="voters" aria-hidden="true">
+      @for (v of faces(); track v.id) {
+        @if (v.avatar; as avatar) {
+          <img [src]="url(avatar)" alt="" />
+        } @else {
+          <span class="initial">{{ v.name[0] }}</span>
+        }
+      }
+      <span class="count">{{ c.voters.length }}</span>
+    </span>
+  }
+
+  <span class="label" aria-hidden="true">
+    <span class="name">
+      <span class="name-text">{{ p.name }}</span>
+      @if (c.me) {
+        <span class="tag">tú</span>
+      }
+    </span>
+    @if (p.role; as role) {
+      <span class="role" [class.wolf]="isWolf(role)">{{ roleIcon(role) }} {{ roleName(role) }}</span>
+    }
+  </span>
+</button>

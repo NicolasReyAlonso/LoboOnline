@@ -1,0 +1,22 @@
+<button
+  type="button"
+  class="narrator"
+  [attr.aria-expanded]="open()"
+  [attr.aria-label]="'Narrador: ' + counter() + ', ' + phase().title + '. ' + (open() ? 'Ocultar' : 'Volver a contar')"
+  (click)="toggle()"
+>
+  <span class="face" aria-hidden="true">🧙</span>
+  <span class="caption">
+    <span class="eyebrow">{{ counter() }}</span>
+    <span class="title">{{ phase().icon }} {{ phase().title }}</span>
+  </span>
+</button>
+
+@if (open()) {
+  <div class="bubble" role="status" animate.leave="leaving" (click)="hide()">
+    <p class="narration">{{ phase().narration }}</p>
+    @for (line of lines(); track $index) {
+      <p class="line"><span aria-hidden="true">{{ line.icon }}</span> {{ line.text }}</p>
+    }
+  </div>
+}

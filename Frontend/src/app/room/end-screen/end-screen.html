@@ -13,7 +13,11 @@
   <ul class="players">
     @for (p of rows(); track p.id) {
       <li [class.won]="p.won" [class.dead]="!p.alive">
-        <span class="avatar" [style.background]="color(p.name)">{{ initial(p.name) }}</span>
+        @if (avatar(p.id); as src) {
+          <img class="avatar" [src]="src" alt="" />
+        } @else {
+          <span class="avatar" aria-hidden="true">👤</span>
+        }
         <span class="name">
           {{ p.name }}
           @if (p.id === meId()) {

@@ -24,6 +24,9 @@
   <ul #list class="messages" aria-live="polite">
     @for (m of visible(); track m.id) {
       <li [class.mine]="m.playerId === myId()">
+        @if (game.avatarOf(m.playerId); as avatar) {
+          <img class="mini" [src]="avatarUrl(avatar)" alt="" />
+        }
         <span class="author" [style.color]="color(m.name)">{{ m.name }}</span>
         <span class="text">{{ m.text }}</span>
         <time class="time">{{ m.ts | date: 'HH:mm' }}</time>

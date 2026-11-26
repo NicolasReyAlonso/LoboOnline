@@ -1,0 +1,33 @@
+<div class="carousel" [class.fade-start]="canPrev()" [class.fade-end]="canNext()">
+  <button
+    type="button"
+    class="nav prev"
+    aria-label="Ver los anteriores"
+    [class.hidden]="!canPrev()"
+    [attr.tabindex]="canPrev() ? null : -1"
+    (click)="scroll(-1)"
+  >
+    ‹
+  </button>
+
+  <ul #track class="track" (scroll)="updateEnds()">
+    @for (c of cards(); track c.player.id) {
+      <li>
+        <app-player-card [card]="c" (pick)="pick.emit(c.player.id)" />
+      </li>
+    } @empty {
+      <li class="empty muted">No hay más jugadores.</li>
+    }
+  </ul>
+
+  <button
+    type="button"
+    class="nav next"
+    aria-label="Ver los siguientes"
+    [class.hidden]="!canNext()"
+    [attr.tabindex]="canNext() ? null : -1"
+    (click)="scroll(1)"
+  >
+    ›
+  </button>
+</div>

@@ -51,6 +51,34 @@
   }
 }
 
+.avatar-btn {
+  position: relative;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+
+  .avatar {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  .edit {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-text);
+    font-size: 0.7rem;
+  }
+}
+
 .name {
   flex: 1;
   min-width: 0;

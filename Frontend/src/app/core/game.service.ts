@@ -1,5 +1,6 @@
 import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
+import type { AvatarId } from '@lobo/avatars';
 import { seasonAt } from '@lobo/game/seasons';
 import { isNightPhase } from '@lobo/game/types';
 import type {
@@ -52,6 +53,8 @@ export class GameService {
   readonly session = signal<Session | null>(loadSession());
   readonly state = signal<RoomState | null>(null);
   readonly messages = signal<ChatMessage[]>([]);
+  /** Se abre el selector de avatar (justo al entrar en una sala, o al tocar el tuyo en el lobby). */
+  readonly pickingAvatar = signal(false);
 
   readonly game = computed(() => this.state()?.game ?? null);
   readonly me = computed(() => this.game()?.me ?? null);
@@ -64,6 +67,10 @@ export class GameService {
     if (!game || game.phase === 'ended') return 'night';
     return isNightPhase(game.phase) ? 'night' : 'day';
   });
+
+  private readonly avatars = computed(
+    () => new Map<string, AvatarId>((this.state()?.players ?? []).map((p) => [p.id, p.avatar])),
+  );
 
   private readonly names = computed(() => {
     const map = new Map<string, string>();
@@ -108,6 +115,11 @@ export class GameService {
     return this.names().get(id) ?? '¿?';
   }
 
+  /** `null` si el jugador ya no está en la sala. */
+  avatarOf(id: string): AvatarId | null {
+    return this.avatars().get(id) ?? null;
+  }
+
   // ---------------------------------------------------------------------------
   // Salas
   // ---------------------------------------------------------------------------
@@ -128,6 +140,10 @@ export class GameService {
       // Da igual: nos vamos de todas formas.
     }
     this.reset();
+  }
+
+  setAvatar(avatar: AvatarId): Promise<boolean> {
+    return this.run('room:avatar', { avatar });
   }
 
   kick(playerId: string): Promise<boolean> {
@@ -166,6 +182,8 @@ export class GameService {
     try {
       const session = await this.request<Session>(event, payload);
       this.setSession(session);
+      // El servidor te ha dado uno al azar: lo primero es poder cambiarlo.
+      this.pickingAvatar.set(true);
       return session.code;
     } catch (err) {
       this.showError(err);
@@ -201,6 +219,7 @@ export class GameService {
     this.setSession(null);
     this.state.set(null);
     this.messages.set([]);
+    this.pickingAvatar.set(false);
     if (message) this.toasts.show(message);
     void this.router.navigate(['/']);
   }
