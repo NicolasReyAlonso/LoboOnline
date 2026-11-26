@@ -41,17 +41,17 @@
     background:
       radial-gradient(
         circle at var(--shine-x, 50%) var(--shine-y, 50%),
-        rgba(255, 255, 255, 0.42),
-        rgba(255, 255, 255, 0.1) 32%,
-        transparent 58%
+        rgba(255, 255, 255, 0.4),
+        rgba(255, 255, 255, 0.1) 30%,
+        transparent 55%
       ),
       linear-gradient(
         115deg,
-        transparent calc(var(--shine-x, 50%) - 30%),
-        rgba(255, 255, 255, 0.16) var(--shine-x, 50%),
-        transparent calc(var(--shine-x, 50%) + 30%)
+        transparent calc(var(--shine-x, 50%) - 28%),
+        rgba(255, 255, 255, 0.14) var(--shine-x, 50%),
+        transparent calc(var(--shine-x, 50%) + 28%)
       );
-    mix-blend-mode: overlay;
+    mix-blend-mode: screen;
     opacity: var(--shine, 0);
     pointer-events: none;
     transition: opacity 0.3s ease;

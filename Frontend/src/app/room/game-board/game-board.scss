@@ -25,7 +25,8 @@
 .panel {
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  background-color: color-mix(in srgb, var(--bg) 86%, transparent);
+  transition: background-color var(--theme-time) ease-in-out;
   box-shadow: var(--shadow);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
@@ -45,8 +46,19 @@
   gap: 4px 12px;
   margin: 0 calc(-1 * var(--gutter));
   padding: max(10px, env(safe-area-inset-top)) var(--gutter) 10px;
-  background: linear-gradient(var(--bg) 70%, transparent);
-  transition: background 0.8s ease;
+
+  // Fondo que se funde por abajo. Es un color con máscara (y no un degradado)
+  // para que se oscurezca a la vez que el resto de la página.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--bg);
+    -webkit-mask-image: linear-gradient(#000 70%, transparent);
+    mask-image: linear-gradient(#000 70%, transparent);
+    transition: background-color var(--theme-time) ease-in-out;
+  }
 }
 
 .narrator {
@@ -59,6 +71,9 @@
   --clock-size: 62px;
 }
 
+// El sol y la luna. Al caer la noche el sol baja, se pone rojo y se apaga
+// mientras se oscurece la página, y un poco después sale la luna; al amanecer,
+// al revés. Duran lo mismo que el cambio de colores (--theme-time).
 .sky {
   position: relative;
   justify-self: end;
@@ -70,8 +85,9 @@
     inset: 0;
     border-radius: 50%;
     transition:
-      opacity 0.9s ease,
-      transform 0.9s cubic-bezier(0.2, 0.85, 0.25, 1);
+      opacity var(--theme-time) ease-in-out,
+      transform var(--theme-time) ease-in-out,
+      filter var(--theme-time) ease-in-out;
   }
 }
 
@@ -82,24 +98,35 @@
     0 0 26px rgba(241, 236, 210, 0.35);
 }
 
+// La luna sale cuando el sol ya se está poniendo.
+.sky .moon {
+  transition-delay: calc(var(--theme-time) * 0.35);
+}
+
 .sun {
   background: radial-gradient(circle at 40% 40%, #fff7cf, #ffc83d 58%, #f39c1f);
   box-shadow:
     0 0 24px 6px rgba(255, 186, 60, 0.55),
     0 0 70px rgba(255, 186, 60, 0.35);
+  // De noche: escondido por debajo, rojo de atardecer.
   opacity: 0;
-  transform: scale(0.5) rotate(-60deg);
+  filter: hue-rotate(-28deg) saturate(1.6) brightness(0.9);
+  transform: translateY(140%) scale(0.85);
 }
 
 .sky.day {
   .moon {
     opacity: 0;
-    transform: scale(0.5) rotate(60deg);
+    transform: translateY(140%) scale(0.85);
+    transition-delay: 0s;
   }
 
   .sun {
     opacity: 1;
+    filter: none;
     transform: none;
+    // Sale cuando la luna ya se está poniendo.
+    transition-delay: calc(var(--theme-time) * 0.35);
   }
 }
 
@@ -134,8 +161,19 @@
   align-items: flex-end;
   gap: 12px;
   padding: 8px var(--gutter) var(--dock-pad);
-  background: linear-gradient(transparent, var(--bg) 45%);
   pointer-events: none;
+
+  // Fondo que se funde por arriba (color con máscara, para que cambie a la vez que la página).
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--bg);
+    -webkit-mask-image: linear-gradient(transparent, #000 45%);
+    mask-image: linear-gradient(transparent, #000 45%);
+    transition: background-color var(--theme-time) ease-in-out;
+  }
 
   > * {
     pointer-events: auto;
@@ -320,7 +358,10 @@ app-role-card {
     position: relative;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     padding-top: 20px;
-    background: none;
+
+    &::before {
+      display: none;
+    }
   }
 
   .narrator {
@@ -360,7 +401,10 @@ app-role-card {
 
   .dock {
     gap: 18px;
-    background: none;
+
+    &::before {
+      display: none;
+    }
   }
 
   .buttons {

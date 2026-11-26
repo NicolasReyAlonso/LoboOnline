@@ -55,7 +55,7 @@ function assetUrl(path: string): string {
       inset: 0;
       -webkit-mask: var(--mask) center / 100% 100% no-repeat;
       mask: var(--mask) center / 100% 100% no-repeat;
-      transition: background-color 0.8s ease;
+      transition: background-color var(--theme-time) ease-in-out;
     }
 
     .paper {
@@ -97,9 +97,9 @@ function assetUrl(path: string): string {
       background: var(--card-paper);
       color: var(--card-ink);
       transition:
-        background-color 0.8s ease,
-        border-color 0.8s ease,
-        color 0.8s ease;
+        background-color var(--theme-time) ease-in-out,
+        border-color var(--theme-time) ease-in-out,
+        color var(--theme-time) ease-in-out;
     }
 
     .icon {
@@ -116,7 +116,7 @@ function assetUrl(path: string): string {
       font-family: var(--font-display);
       font-size: 8cqw;
       text-transform: uppercase;
-      transition: border-color 0.8s ease;
+      transition: border-color var(--theme-time) ease-in-out;
     }
   `,
   host: {

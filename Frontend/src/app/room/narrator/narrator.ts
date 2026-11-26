@@ -35,6 +35,17 @@ export class Narrator {
     return isNightPhase(v.phase) ? `Noche ${v.night}` : `Día ${v.day}`;
   });
 
+  /** De noche la fase se llama "Noche": basta con "Noche 2" (y no "Noche 2 · Noche"). */
+  private readonly redundant = computed(() =>
+    this.counter().toLowerCase().startsWith(this.phase().title.toLowerCase()),
+  );
+  protected readonly eyebrow = computed(() => (this.redundant() ? null : this.counter()));
+  protected readonly title = computed(() => (this.redundant() ? this.counter() : this.phase().title));
+  protected readonly heading = computed(() => {
+    const eyebrow = this.eyebrow();
+    return eyebrow ? `${eyebrow} · ${this.title()}` : this.title();
+  });
+
   /** Lo que ha pasado desde que acabó la noche (o desde la votación). */
   protected readonly lines = computed(() => {
     const v = this.view();

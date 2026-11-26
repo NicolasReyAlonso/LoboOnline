@@ -11,6 +11,8 @@
   --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   --radius: 16px;
   --radius-sm: 10px;
+  /** Lo que tarda en hacerse de noche o de día (el fondo y el sol van a la vez). */
+  --theme-time: 1.4s;
 
   --bg: #0b0e21;
   --bg-image: radial-gradient(1100px 600px at 85% -10%, rgba(92, 104, 214, 0.35), transparent 60%),
@@ -78,8 +80,8 @@ body {
   background-image: var(--bg-image);
   background-attachment: fixed;
   transition:
-    background-color 0.8s ease,
-    color 0.8s ease;
+    background-color var(--theme-time) ease-in-out,
+    color var(--theme-time) ease-in-out;
 }
 
 h1,
