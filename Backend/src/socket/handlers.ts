@@ -5,6 +5,7 @@ import type { Room, RoomPlayer } from '../rooms/Room.js';
 import type { RoomManager } from '../rooms/RoomManager.js';
 import {
   actionSchema,
+  avatarSchema,
   chatSchema,
   createSchema,
   joinSchema,
@@ -135,6 +136,12 @@ export function registerHandlers(io: LoboServer, rooms: RoomManager): void {
       const patch = parse(settingsSchema, payload);
       const { room, playerId } = session();
       room.updateSettings(playerId, patch);
+    });
+
+    on(socket, 'room:avatar', true, (payload) => {
+      const { avatar } = parse(avatarSchema, payload);
+      const { room, playerId } = session();
+      room.setAvatar(playerId, avatar);
     });
 
     on(socket, 'room:lobby', false, () => {

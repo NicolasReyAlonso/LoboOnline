@@ -1,5 +1,6 @@
 import { io as connect, type Socket } from 'socket.io-client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { AVATARS } from '../src/avatars.js';
 import { DEFAULT_ROOM_CONFIG } from '../src/config.js';
 import type {
   AckResponse,
@@ -151,6 +152,19 @@ describe('servidor', () => {
     ok(await host.emitWithAck('room:settings', { minWolves: 2 }));
     const withMin = await waitForState(guests[1]!, (s) => s.settings.minWolves === 2);
     expect(withMin.settings.maxWolves).toBe(3);
+  });
+
+  it('cada jugador cambia su avatar, sin repetir el de otro', async () => {
+    const { host, guests } = await lobbyWith(2);
+    const state = await waitForState(guests[0]!, (s) => s.players.length === 2);
+    const [mine, theirs] = state.players.map((p) => p.avatar);
+    expect(mine).not.toBe(theirs);
+    expect(await host.emitWithAck('room:avatar', { avatar: theirs! })).toMatchObject({ ok: false, code: 'avatar_taken' });
+    expect(await host.emitWithAck('room:avatar', { avatar: 'nada' as never })).toMatchObject({ ok: false });
+    const free = AVATARS.find((a) => a !== mine && a !== theirs)!;
+    ok(await host.emitWithAck('room:avatar', { avatar: free }));
+    const updated = await waitForState(guests[0]!, (s) => s.players[0]?.avatar === free);
+    expect(updated.players[0]?.avatar).toBe(free);
   });
 
   it('juega una noche completa por sockets', async () => {

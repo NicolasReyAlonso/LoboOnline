@@ -297,25 +297,33 @@ describe('votación de día', () => {
     game.act('p0', { type: 'wolf_vote', target: 'p5' });
     skipTo(game, 'day_discussion'); // quedan 5 vivos: hace falta que lo pidan 3
     const regular = game.viewFor('p1').endsAt;
+    const phaseStart = now();
     expect(regular).toBe(now() + game.settings.durations.discussion * 1000);
+    expect(game.viewFor('p1').timerStartedAt).toBe(phaseStart);
 
+    tick(1_000);
     game.act('p1', { type: 'ready', ready: true });
     game.act('p2', { type: 'ready', ready: true });
     expect(game.viewFor('p1').endsAt).toBe(regular); // 2 de 5 no es mayoría
+    expect(game.viewFor('p1').timerStartedAt).toBe(phaseStart);
 
     game.act('p3', { type: 'ready', ready: true });
+    const countdownStart = now();
     expect(game.viewFor('p1').endsAt).toBe(now() + 10_000);
+    expect(game.viewFor('p1').timerStartedAt).toBe(countdownStart); // el reloj cuenta los 10 s
     expect(game.nextTimeoutAt).toBe(now() + 10_000);
 
     // Otro más no reinicia la cuenta atrás.
     tick(4_000);
     game.act('p4', { type: 'ready', ready: true });
     expect(game.viewFor('p1').endsAt).toBe(now() + 6_000);
+    expect(game.viewFor('p1').timerStartedAt).toBe(countdownStart);
 
     // Si dejan de ser mayoría, se cancela y vuelve el tiempo normal.
     game.act('p4', { type: 'ready', ready: false });
     game.act('p3', { type: 'ready', ready: false });
     expect(game.viewFor('p1').endsAt).toBe(regular);
+    expect(game.viewFor('p1').timerStartedAt).toBe(phaseStart);
     expect(game.nextTimeoutAt).toBe(regular);
 
     game.act('p3', { type: 'ready', ready: true });

@@ -1,4 +1,5 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomInt } from 'node:crypto';
+import { AVATARS, type AvatarId } from '../avatars.js';
 import { createGame } from '../game/createGame.js';
 import { GameError } from '../game/errors.js';
 import type { Game } from '../game/Game.js';
@@ -29,6 +30,7 @@ export interface RoomConfig {
 export interface RoomPlayer {
   id: string;
   name: string;
+  avatar: AvatarId;
   /** Secreto para reconectar. Nunca se envía a otros jugadores. */
   token: string;
   socketId: string | null;
@@ -111,12 +113,29 @@ export class Room {
       }
     }
 
-    const player: RoomPlayer = { id: randomId(), name, token: randomId(24), socketId };
+    const free = this.freeAvatars();
+    const avatar = free[randomInt(free.length)] as AvatarId;
+    const player: RoomPlayer = { id: randomId(), name, avatar, token: randomId(24), socketId };
     this.players.set(player.id, player);
     this.hostId ??= player.id;
     this.cancelEmptyTimer();
     this.broadcast();
     return player;
+  }
+
+  /** Cambia de avatar. Fuera de partida y si no lo tiene ya otro jugador. */
+  setAvatar(playerId: string, avatar: AvatarId): void {
+    const player = this.players.get(playerId);
+    if (!player) throw new GameError('not_in_room', 'No estás en esta sala.');
+    if (this.status === 'playing') {
+      throw new GameError('game_in_progress', 'No se puede cambiar de avatar durante la partida.');
+    }
+    if (player.avatar === avatar) return;
+    if ([...this.players.values()].some((p) => p.avatar === avatar)) {
+      throw new GameError('avatar_taken', 'Ese avatar ya lo tiene otro jugador.');
+    }
+    player.avatar = avatar;
+    this.broadcast();
   }
 
   /** Reconecta a un jugador con su token. Devuelve el socket anterior, si lo había. */
@@ -309,6 +328,7 @@ export class Room {
       players: [...this.players.values()].map((p) => ({
         id: p.id,
         name: p.name,
+        avatar: p.avatar,
         connected: p.socketId !== null,
         isHost: p.id === this.hostId,
       })),
@@ -336,6 +356,11 @@ export class Room {
   // -------------------------------------------------------------------------
   // Internos
   // -------------------------------------------------------------------------
+
+  private freeAvatars(): AvatarId[] {
+    const taken = new Set([...this.players.values()].map((p) => p.avatar));
+    return AVATARS.filter((a) => !taken.has(a));
+  }
 
   private rolePreview(): NonNullable<RoomState['rolePreview']> {
     try {

@@ -209,6 +209,11 @@ export interface GameView {
   phaseId: number;
   /** Timestamp (ms) en el que termina la fase, para pintar la cuenta atrás. */
   endsAt: number | null;
+  /**
+   * Desde cuándo corre esa cuenta atrás (el inicio de la fase, o el de la
+   * cuenta atrás corta para pasar a votar), para pintar cuánto queda en proporción.
+   */
+  timerStartedAt: number | null;
   night: number;
   day: number;
   /** Lo que se sabe del reparto (sin el número exacto de lobos). */

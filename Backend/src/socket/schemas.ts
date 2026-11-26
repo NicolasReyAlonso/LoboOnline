@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AVATARS } from '../avatars.js';
 import { GameError } from '../game/errors.js';
 import { MAX_WOLVES } from '../game/roles.js';
 
@@ -20,6 +21,7 @@ export const createSchema = z.object({ name: playerName });
 export const joinSchema = z.object({ code: roomCode, name: playerName });
 export const rejoinSchema = z.object({ code: roomCode, token: z.string().min(1).max(128) });
 export const kickSchema = z.object({ playerId });
+export const avatarSchema = z.object({ avatar: z.enum(AVATARS) });
 export const chatSchema = z.object({
   channel: z.enum(['general', 'wolves', 'dead']),
   text: z.string().trim().min(1, 'El mensaje está vacío.').max(500, 'Mensaje demasiado largo (máx. 500).'),

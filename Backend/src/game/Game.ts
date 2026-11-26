@@ -111,6 +111,9 @@ export class Game {
   private endsAt: number | null = null;
   /** Fin normal de la fase, sin la cuenta atrás de "pasar a votar". */
   private regularEndsAt: number | null = null;
+  /** Desde cuándo corre `endsAt`, y cuándo empezó la fase. */
+  private timerStartedAt: number | null = null;
+  private phaseStartedAt: number | null = null;
   /** Cuándo hay que llamar a timeout(); en pasos fantasma es antes que endsAt. */
   private deadline: number | null = null;
   /** El rol de este paso nocturno está muerto: nadie actúa, solo se simula. */
@@ -293,6 +296,7 @@ export class Game {
       phase: this._phase,
       phaseId: this._phaseId,
       endsAt: this.endsAt,
+      timerStartedAt: this.timerStartedAt,
       night: this._night,
       day: this._day,
       composition: structuredClone(this.composition),
@@ -432,13 +436,21 @@ export class Game {
     }
     const regular = this.regularEndsAt ?? this.now();
     let endsAt = regular;
+    let startedAt = this.phaseStartedAt;
     if (this.readyIds.size * 2 > alive) {
       // Si la cuenta atrás ya estaba en marcha, sigue; si no, empieza ahora.
       const running = this.endsAt !== null && this.endsAt < regular;
-      endsAt = running ? (this.endsAt as number) : Math.min(regular, this.now() + VOTE_COUNTDOWN_SECONDS * 1000);
+      if (running) {
+        endsAt = this.endsAt as number;
+        startedAt = this.timerStartedAt;
+      } else if (this.now() + VOTE_COUNTDOWN_SECONDS * 1000 < regular) {
+        endsAt = this.now() + VOTE_COUNTDOWN_SECONDS * 1000;
+        startedAt = this.now();
+      }
     }
     this.endsAt = endsAt;
     this.deadline = endsAt;
+    this.timerStartedAt = startedAt;
   }
 
   // -------------------------------------------------------------------------
@@ -663,9 +675,13 @@ export class Game {
       this.endsAt = null;
       this.regularEndsAt = null;
       this.deadline = null;
+      this.timerStartedAt = null;
+      this.phaseStartedAt = null;
       return;
     }
     const now = this.now();
+    this.timerStartedAt = now;
+    this.phaseStartedAt = now;
     const real = this.durationOf(phase) * 1000;
     this.endsAt = now + real;
     this.regularEndsAt = this.endsAt;

@@ -7,9 +7,11 @@
  *   import { io, type Socket } from 'socket.io-client';
  *   const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(URL);
  */
+import type { AvatarId } from './avatars.js';
 import type { Composition, Durations, GameAction, GameSettings, GameView, RoleCounts, Season } from './game/types.js';
 
 export type * from './game/types.js';
+export type { AvatarId } from './avatars.js';
 
 export type RoomStatus = 'lobby' | 'playing' | 'ended';
 
@@ -23,6 +25,8 @@ export type ChatChannel = 'general' | 'wolves' | 'dead';
 export interface RoomPlayerView {
   id: string;
   name: string;
+  /** Al entrar se le da uno libre al azar; se puede cambiar fuera de partida (`room:avatar`). */
+  avatar: AvatarId;
   connected: boolean;
   isHost: boolean;
 }
@@ -91,6 +95,8 @@ export interface ClientToServerEvents {
   'room:leave': (ack: Ack) => void;
   'room:kick': (payload: { playerId: string }, ack: Ack) => void;
   'room:settings': (payload: SettingsPatch, ack: Ack) => void;
+  /** Cambiar de avatar (fuera de partida). Falla si ya lo tiene otro jugador. */
+  'room:avatar': (payload: { avatar: AvatarId }, ack: Ack) => void;
   /** Tras terminar una partida, el anfitrión vuelve al lobby para jugar otra. */
   'room:lobby': (ack: Ack) => void;
   'game:start': (ack: Ack) => void;

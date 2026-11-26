@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AVATARS } from '../src/avatars.js';
 import { DEFAULT_ROOM_CONFIG } from '../src/config.js';
+import { MAX_PLAYERS } from '../src/game/roles.js';
 import type { Season } from '../src/game/types.js';
 import { Room, type Transport } from '../src/rooms/Room.js';
 
@@ -22,6 +24,45 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+});
+
+describe('avatares', () => {
+  it('hay al menos uno por cada jugador que cabe en una sala', () => {
+    expect(new Set(AVATARS).size).toBe(AVATARS.length);
+    expect(AVATARS.length).toBeGreaterThanOrEqual(MAX_PLAYERS);
+  });
+
+  it('al entrar a cada uno le toca uno libre, sin repetir, aunque la sala se llene', () => {
+    const { room } = makeRoom();
+    const players = Array.from({ length: MAX_PLAYERS }, (_, i) => room.join(`J${i}`, `s${i}`));
+    expect(new Set(players.map((p) => p.avatar)).size).toBe(MAX_PLAYERS);
+    expect(room.stateFor(players[0]!.id).players.map((p) => p.avatar)).toEqual(players.map((p) => p.avatar));
+  });
+
+  it('se puede cambiar por uno libre, y al irse alguien el suyo queda libre', () => {
+    const { room } = makeRoom();
+    const a = room.join('Ana', 's1');
+    const b = room.join('Bea', 's2');
+    expect(() => room.setAvatar(a.id, b.avatar)).toThrow(/ya lo tiene otro/);
+    room.setAvatar(a.id, a.avatar); // el suyo: no pasa nada
+
+    const free = AVATARS.find((x) => x !== a.avatar && x !== b.avatar)!;
+    room.setAvatar(a.id, free);
+    expect(room.stateFor(b.id).players.find((p) => p.id === a.id)?.avatar).toBe(free);
+
+    const old = b.avatar;
+    room.leave(b.id);
+    room.setAvatar(a.id, old);
+    expect(room.stateFor(a.id).players[0]?.avatar).toBe(old);
+  });
+
+  it('no se puede cambiar durante la partida', () => {
+    const { room } = makeRoom();
+    const players = ['Ana', 'Bea', 'Carla', 'Dani'].map((n, i) => room.join(n, `s${i}`));
+    const free = AVATARS.find((x) => !players.some((p) => p.avatar === x))!;
+    room.start(players[0]!.id);
+    expect(() => room.setAvatar(players[1]!.id, free)).toThrow(/durante la partida/);
+  });
 });
 
 describe('Room', () => {
