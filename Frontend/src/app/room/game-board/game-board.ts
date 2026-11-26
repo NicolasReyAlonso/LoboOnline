@@ -1,33 +1,40 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
-import { isNightPhase, type LogEntry } from '@lobo/game/types';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { GameService } from '../../core/game.service';
-import { describePublic } from '../../core/log';
-import { phaseInfo } from '../../core/phases';
-import { roleDescription, roleIcon, roleName } from '../../core/roles';
-import { Countdown } from '../../shared/countdown/countdown';
+import { PhaseClock } from '../../shared/phase-clock/phase-clock';
 import { ActionPanel } from '../action-panel/action-panel';
 import { Chat } from '../chat/chat';
 import { EndScreen } from '../end-screen/end-screen';
-import { GameLog } from '../game-log/game-log';
-import { PlayerGrid } from '../player-grid/player-grid';
+import { GameLog, type LogSection } from '../game-log/game-log';
+import { Narrator } from '../narrator/narrator';
+import { PlayerCard, type CardState, type Voter } from '../player-card/player-card';
+import { PlayerCarousel } from '../player-carousel/player-carousel';
 import { RoleCard } from '../role-card/role-card';
 
-type Tab = 'game' | 'chat' | 'log';
-
-function lastIndex(log: readonly LogEntry[], kind: LogEntry['kind']): number {
-  for (let i = log.length - 1; i >= 0; i--) if (log[i].kind === kind) return i;
-  return -1;
-}
+/** A partir de este ancho el chat se queda abierto a un lado; por debajo es un panel que se despliega. */
+const WIDE = '(min-width: 960px)';
 
 /**
- * Pantalla de partida. En el móvil se divide en pestañas (partida, chat,
- * crónica); en pantallas anchas se ve todo a la vez.
+ * Pantalla de partida:
+ * - arriba, el narrador, el reloj y el sol o la luna;
+ * - en medio, lo que te toca hacer y el carrusel con los demás jugadores;
+ * - abajo, tu avatar, tu carta y los botones del reparto, la crónica y el chat;
+ * - el chat, a la derecha (en el móvil, un panel que se despliega).
  */
 @Component({
   selector: 'app-game-board',
-  imports: [Countdown, ActionPanel, PlayerGrid, Chat, GameLog, EndScreen, RoleCard],
+  imports: [PhaseClock, Narrator, ActionPanel, PlayerCarousel, PlayerCard, Chat, GameLog, EndScreen, RoleCard],
   templateUrl: './game-board.html',
   styleUrl: './game-board.scss',
+  host: { '(document:keydown.escape)': 'sheet.set(null)' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameBoard {
@@ -36,23 +43,12 @@ export class GameBoard {
   protected readonly view = computed(() => this.game.game()!);
   protected readonly me = computed(() => this.view().me);
   protected readonly action = computed(() => this.view().action);
-  protected readonly phase = computed(() => phaseInfo(this.view().phase));
-  protected readonly counter = computed(() => {
-    const v = this.view();
-    if (v.phase === 'ended') return `${v.night} ${v.night === 1 ? 'noche' : 'noches'}`;
-    return isNightPhase(v.phase) ? `Noche ${v.night}` : `Día ${v.day}`;
-  });
+  protected readonly ended = computed(() => this.view().phase === 'ended');
 
-  protected readonly roleIcon = roleIcon;
-  protected readonly roleName = roleName;
-  protected readonly roleDescription = roleDescription;
-
-  protected readonly tab = signal<Tab>('game');
-  protected readonly showRoleInfo = signal(false);
   /** Jugadores seleccionados para la acción actual (se comparte con el panel de acción). */
   protected readonly selected = signal<string[]>([]);
 
-  protected readonly selectable = computed<ReadonlySet<string>>(() => {
+  private readonly selectable = computed<ReadonlySet<string>>(() => {
     const a = this.action();
     if (!a || a.type === 'ready') return new Set();
     if (a.type === 'witch') return new Set(a.canPoison ? a.targets : []);
@@ -60,12 +56,12 @@ export class GameBoard {
   });
 
   /** Votos visibles: los del día (públicos) o los de la manada (solo lobos). */
-  protected readonly votes = computed(() => {
+  private readonly votes = computed(() => {
     const a = this.action();
     return a?.type === 'wolf_vote' ? a.votes : this.view().votes;
   });
 
-  protected readonly myVote = computed(() => {
+  private readonly myVote = computed(() => {
     const a = this.action();
     const me = this.me();
     if (a?.type === 'vote') return a.hasVoted ? a.myVote : null;
@@ -73,32 +69,52 @@ export class GameBoard {
     return null;
   });
 
-  protected readonly offline = computed<ReadonlySet<string>>(
-    () => new Set(this.game.state()!.players.filter((p) => !p.connected).map((p) => p.id)),
-  );
-
-  /** Lo que ha pasado desde que acabó la noche (o desde la votación), para anunciarlo arriba. */
-  protected readonly announcement = computed(() => {
-    const v = this.view();
-    if (!['dawn', 'hunter', 'day_discussion', 'dusk'].includes(v.phase)) return [];
-    const lastNight = lastIndex(v.log, 'night_start');
-    const lastVote = lastIndex(v.log, 'vote_result');
-    const from = lastVote > lastNight ? lastVote : lastNight + 1;
-    const lines = v.log
-      .slice(from)
-      .filter((e) => e.kind !== 'night_start' && e.kind !== 'game_over')
-      .flatMap((e) => describePublic(e, (id) => this.game.nameOf(id)));
-    // Aviso privado de esta noche: la vidente te ha mirado la carta (solo te llega a ti).
-    if (lastNight > lastVote && v.privateLog.some((e) => e.kind === 'seen' && e.night === v.night)) {
-      lines.push({ icon: '👁️', text: 'Esta noche alguien ha mirado tu carta. Solo lo sabes tú.' });
+  /** votado -> quienes le votan */
+  private readonly voters = computed(() => {
+    const map = new Map<string, Voter[]>();
+    for (const [voter, target] of Object.entries(this.votes() ?? {})) {
+      if (!target) continue;
+      const v: Voter = { id: voter, name: this.game.nameOf(voter), avatar: this.game.avatarOf(voter) };
+      map.set(target, [...(map.get(target) ?? []), v]);
     }
-    return lines;
+    return map;
   });
+
+  private readonly cards = computed<CardState[]>(() => {
+    const v = this.view();
+    const meId = v.me?.id;
+    const selectable = this.selectable();
+    const selected = this.selected();
+    const ready = new Set(v.readyIds ?? []);
+    const online = new Map((this.game.state()?.players ?? []).map((p) => [p.id, p.connected]));
+    return v.players.map((p) => ({
+      player: p,
+      avatar: this.game.avatarOf(p.id),
+      me: p.id === meId,
+      pickable: selectable.has(p.id),
+      selected: selected.includes(p.id),
+      voted: p.id === this.myVote(),
+      ready: ready.has(p.id),
+      offline: online.get(p.id) === false,
+      voters: this.voters().get(p.id) ?? [],
+    }));
+  });
+
+  protected readonly myCard = computed(() => this.cards().find((c) => c.me) ?? null);
+  protected readonly others = computed(() => this.cards().filter((c) => !c.me));
+
+  // ---------------------------------------------------------------------------
+  // Chat y paneles de abajo
+  // ---------------------------------------------------------------------------
+
+  private readonly wide = signal(matchMedia(WIDE).matches);
+  protected readonly chatOpen = signal(this.wide());
+  protected readonly sheet = signal<LogSection | null>(null);
 
   // Lo que ya se leyó en el lobby no cuenta como pendiente.
   private readonly chatSeen = signal(this.game.messages().length);
   protected readonly unreadChat = computed(() =>
-    this.tab() === 'chat' ? 0 : Math.max(0, this.game.messages().length - this.chatSeen()),
+    this.chatOpen() ? 0 : Math.max(0, this.game.messages().length - this.chatSeen()),
   );
 
   constructor() {
@@ -119,11 +135,34 @@ export class GameBoard {
     });
 
     effect(() => {
-      if (this.tab() === 'chat') {
+      if (this.chatOpen()) {
         const count = this.game.messages().length;
         untracked(() => this.chatSeen.set(count));
       }
     });
+
+    // Al pasar de pantalla ancha a estrecha (o al revés) el chat se cierra (o se abre).
+    const query = matchMedia(WIDE);
+    const onChange = (e: MediaQueryListEvent) => {
+      this.wide.set(e.matches);
+      this.chatOpen.set(e.matches);
+      if (!e.matches) this.sheet.set(null);
+    };
+    query.addEventListener('change', onChange);
+    inject(DestroyRef).onDestroy(() => query.removeEventListener('change', onChange));
+  }
+
+  protected toggleChat(): void {
+    const open = !this.chatOpen();
+    this.chatOpen.set(open);
+    // En el móvil solo cabe un panel a la vez.
+    if (open && !this.wide()) this.sheet.set(null);
+  }
+
+  protected toggleSheet(section: LogSection): void {
+    const open = this.sheet() !== section;
+    this.sheet.set(open ? section : null);
+    if (open && !this.wide()) this.chatOpen.set(false);
   }
 
   protected onPick(id: string): void {

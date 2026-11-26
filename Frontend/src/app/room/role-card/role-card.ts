@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signa
 import { GameService } from '../../core/game.service';
 import { roleDescription, roleName } from '../../core/roles';
 import { CardArt } from '../../shared/card-art/card-art';
+import { Tilt } from '../../shared/tilt/tilt';
 
 /** Cuánto se queda la carta en grande al empezar la partida (incluida la animación de entrada). */
 const INTRO_MS = 3400;
@@ -16,7 +17,7 @@ type Mode = 'intro' | 'docked' | 'zoom';
 /** Tu carta de personaje. */
 @Component({
   selector: 'app-role-card',
-  imports: [CardArt],
+  imports: [CardArt, Tilt],
   templateUrl: './role-card.html',
   styleUrl: './role-card.scss',
   host: { '(document:keydown.escape)': 'dock()' },

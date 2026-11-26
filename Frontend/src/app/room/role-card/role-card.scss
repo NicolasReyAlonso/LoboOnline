@@ -49,13 +49,20 @@
   cursor: pointer;
   filter: var(--card-shadow);
   rotate: -8deg;
+  // Se inclina hacia el ratón (directiva appTilt); no choca con rotate ni translate.
+  transform: perspective(700px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
   transition:
     top 0.75s var(--ease),
     left 0.75s var(--ease),
     width 0.75s var(--ease),
     height 0.75s var(--ease),
     rotate 0.75s var(--ease),
-    translate 0.2s ease;
+    translate 0.2s ease,
+    transform 0.45s var(--ease);
+
+  &:hover {
+    transition-duration: 0.75s, 0.75s, 0.75s, 0.75s, 0.75s, 0.2s, 0.1s;
+  }
 
   @media (hover: hover) {
     &:not(.big):hover {

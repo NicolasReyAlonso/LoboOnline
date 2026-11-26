@@ -34,6 +34,7 @@ function assetUrl(path: string): string {
     @if (drawn()) {
       <span class="layer paper" [style.--mask]="silhouette()"></span>
       <span class="layer lines" [style.--mask]="lines()"></span>
+      <span class="layer shine" [style.--mask]="silhouette()"></span>
     } @else {
       <span class="placeholder">
         <span class="icon">{{ icon() }}</span>
@@ -63,6 +64,27 @@ function assetUrl(path: string): string {
 
     .lines {
       background-color: var(--card-ink);
+    }
+
+    /* Brillo que sigue al ratón (lo mueve la directiva appTilt de quien contiene la carta). */
+    .shine,
+    .placeholder::after {
+      background: radial-gradient(
+        circle at var(--shine-x, 50%) var(--shine-y, 50%),
+        rgba(255, 255, 255, 0.5),
+        rgba(255, 255, 255, 0.08) 35%,
+        transparent 60%
+      );
+      opacity: calc(var(--shine, 0) * 0.7);
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .placeholder::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
     }
 
     .placeholder {

@@ -1,3 +1,5 @@
+// En el móvil el narrador y su viñeta se reparten la cabecera (ver más abajo);
+// en pantallas anchas la viñeta sale a su derecha.
 :host {
   position: relative;
   display: block;
@@ -9,6 +11,7 @@
   align-items: center;
   gap: 10px;
   max-width: 100%;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: none;
@@ -35,12 +38,17 @@
   .narrator:hover & {
     transform: rotate(-6deg) scale(1.05);
   }
+
+  .speaking & {
+    animation: talk 0.5s ease-in-out 3;
+  }
 }
 
 .caption {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  transition: opacity 0.25s ease;
 }
 
 .eyebrow,
@@ -52,21 +60,17 @@
 
 .title {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
-// La viñeta cuelga del narrador, por encima de todo, sin mover nada de sitio.
 .bubble {
-  position: absolute;
-  top: calc(100% + 14px);
-  left: 0;
+  position: relative;
   z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  width: min(440px, calc(100vw - 32px));
-  padding: 14px 16px;
+  padding: 12px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface-strong);
@@ -74,19 +78,15 @@
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   cursor: pointer;
-  transform-origin: calc(var(--face, 64px) / 2) -10px;
   animation: speak 0.35s cubic-bezier(0.2, 0.85, 0.25, 1) both;
 
-  // El piquito de la viñeta, apuntando al narrador.
+  // El piquito, apuntando al narrador.
   &::before {
     content: '';
     position: absolute;
-    top: -8px;
-    left: calc(var(--face, 64px) / 2 - 8px);
     width: 16px;
     height: 16px;
-    border-top: 1px solid var(--border);
-    border-left: 1px solid var(--border);
+    border: 0 solid var(--border);
     background: inherit;
     rotate: 45deg;
   }
@@ -94,6 +94,13 @@
   &.leaving {
     animation: speak 0.25s ease reverse both;
   }
+}
+
+.bubble-title {
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .narration {
@@ -104,9 +111,68 @@
   font-weight: 600;
 }
 
+// Móvil: la viñeta ocupa su propia fila bajo la cabecera y empuja lo de debajo
+// (en vez de taparlo). El host desaparece de la maqueta y sus hijos pasan a ser
+// celdas de la cabecera del tablero.
+@media (max-width: 959.98px) {
+  :host {
+    display: contents;
+  }
+
+  .narrator {
+    grid-row: 1;
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .bubble {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    margin-top: 8px;
+
+    &::before {
+      top: -9px;
+      left: calc(var(--face, 64px) / 2 - 8px);
+      border-width: 1px 0 0 1px;
+    }
+  }
+
+  .bubble-title {
+    display: none;
+  }
+}
+
+// Pantallas anchas: la viñeta sale a la derecha del narrador, tapando su
+// rótulo (que repite dentro) y sin mover nada de sitio.
+@media (min-width: 960px) {
+  .bubble {
+    position: absolute;
+    top: 0;
+    left: calc(var(--face, 64px) + 16px);
+    width: min(460px, calc(50vw - 200px));
+    transform-origin: 0 calc(var(--face, 64px) / 2);
+
+    &::before {
+      top: calc(var(--face, 64px) / 2 - 8px);
+      left: -9px;
+      border-width: 0 0 1px 1px;
+    }
+  }
+
+  .speaking .caption {
+    opacity: 0;
+  }
+}
+
 @keyframes speak {
   from {
     opacity: 0;
-    transform: scale(0.85) translateY(-6px);
+    transform: scale(0.85);
+  }
+}
+
+@keyframes talk {
+  50% {
+    transform: rotate(-5deg) translateY(-2px);
   }
 }

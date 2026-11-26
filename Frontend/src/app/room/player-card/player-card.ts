@@ -3,6 +3,7 @@ import type { AvatarId } from '@lobo/avatars';
 import type { PlayerView } from '@lobo/game/types';
 import { avatarUrl } from '../../core/avatar';
 import { isWolfRole, roleIcon, roleName } from '../../core/roles';
+import { Tilt } from '../../shared/tilt/tilt';
 
 export interface Voter {
   id: string;
@@ -34,6 +35,7 @@ const MAX_VOTER_FACES = 5;
 /** Tarjeta de un jugador: su avatar, su nombre, su personaje si se sabe y quién le vota. */
 @Component({
   selector: 'app-player-card',
+  imports: [Tilt],
   templateUrl: './player-card.html',
   styleUrl: './player-card.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
