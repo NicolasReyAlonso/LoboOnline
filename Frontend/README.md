@@ -38,6 +38,7 @@ src/app/
     clock.service.ts    Reloj ajustado a la hora del servidor (cuentas atrás)
     toast.service.ts    Avisos emergentes
     session.ts          Sesión (para reconectar) y nombre guardados en el navegador
+    avatar.ts           Nombre e imagen de cada avatar
     roles.ts, phases.ts Iconos y textos de personajes y fases
     log.ts              Convierte el historial de la partida en frases
     chat-rules.ts       Qué canales puedes leer y escribir (copia de las reglas del servidor)
@@ -47,17 +48,26 @@ src/app/
     room/               /sala/:code → enlace de invitación, reconexión, lobby o partida
   room/
     lobby/              Sala de espera
+    avatar-picker/      Elegir avatar (al entrar en una sala y desde el lobby; no se repiten)
     settings-panel/     Personajes, tiempos y opciones (el anfitrión los edita)
-    game-board/         Pantalla de partida (pestañas en el móvil, columnas en el ordenador)
+    game-board/         Pantalla de partida: junta todo lo de abajo
+    narrator/           El narrador: cuenta cada fase en una viñeta que se cierra sola
     action-panel/       "Lo que te toca hacer ahora"
-    player-grid/        Rejilla de jugadores (se tocan para elegir)
-    game-log/           Composición, tus secretos y crónica
+    player-carousel/    Carrusel con las tarjetas de los demás (se tocan para elegir)
+    player-card/        Tarjeta de un jugador: avatar, nombre, personaje si se sabe y quién le vota
+    game-log/           Reparto, tus secretos y crónica
     end-screen/         Resultado final
     chat/               Chat por canales
     role-card/          Tu carta: aparece en grande al empezar y luego se queda abajo, en la mano
-  shared/               Countdown, toasts y card-art (el dibujo de una tarjeta)
+  shared/
+    phase-clock/        Reloj redondo con el anillo que se vacía
+    tilt/               Directiva appTilt: la carta se inclina hacia el ratón y brilla
+    card-art/           El dibujo de una tarjeta de personaje
+    toasts/             Avisos emergentes
 tarjetas/               Dibujos originales de las tarjetas (2048×2048): tarjetas_base/ y tarjetas_<temporada>/
 scripts/tarjetas.mjs    Los prepara para la web en public/tarjetas/
+avatars/                Ilustraciones originales de los avatares
+scripts/avatares.mjs    Las recorta y aligera para la web en public/avatars/
 ```
 
 ## Cómo funciona
@@ -67,10 +77,14 @@ scripts/tarjetas.mjs    Los prepara para la web en public/tarjetas/
   nombres y descripciones de los personajes también se importan de allí.
 - **El estado entero llega en cada cambio** (`room:state`). `GameService` lo guarda en un signal y los componentes
   solo lo leen: no hace falta sincronizar nada a mano.
-- **`view.action` dice qué puede hacer el jugador** (votar, mirar una carta, usar pociones...). La rejilla resalta a
+- **`view.action` dice qué puede hacer el jugador** (votar, mirar una carta, usar pociones...). El carrusel resalta a
   quién se puede elegir y `ActionPanel` muestra las instrucciones y el botón de confirmar.
+- **La pantalla de partida** sigue el boceto: arriba el narrador, el reloj y el sol o la luna; en medio lo que te toca
+  hacer y el carrusel con los demás; abajo tu avatar, tu carta y los botones del reparto, la crónica y el chat. En
+  pantallas anchas el chat se queda abierto a la derecha; en el móvil es un panel que sube desde abajo.
 - **El tema cambia según la fase:** azul noche o pergamino de día, mediante `<body data-theme>` y las variables CSS
-  de [`styles.scss`](src/styles.scss).
+  de [`styles.scss`](src/styles.scss). El sol se pone (y la luna sale) a la vez que cambian los colores: los dos
+  duran `--theme-time`.
 - **Tarjetas:** cada dibujo se convierte en dos máscaras (las líneas y la silueta de la tarjeta) que se pintan con
   `--card-ink` y `--card-paper`: tinta oscura sobre papel claro de día y en negativo de noche.
 - **Reconexión:** si se cae la conexión o se recarga la página, el servicio vuelve a la sala con el token guardado.
@@ -97,6 +111,22 @@ Un disfraz nunca usa la tarjeta del personaje de siempre: si falta su dibujo, sa
 del disfraz. Un personaje que no se disfraza (como el lobo) puede tener igualmente un dibujo de temporada: si está
 en la lista del script, se usa en esa temporada; si no, sale su tarjeta de siempre. Los textos y los iconos de cada temporada están en [`core/season.ts`](src/app/core/season.ts),
 [`core/roles.ts`](src/app/core/roles.ts) y [`core/phases.ts`](src/app/core/phases.ts).
+
+## Avatares
+
+Cada jugador tiene un avatar y no se pueden repetir en una sala. Al entrar, el servidor le da uno libre al azar y se
+abre el selector para cambiarlo; en el lobby se cambia tocando el tuyo. Durante la partida no se puede cambiar.
+
+Para añadir o cambiar uno:
+
+1. Guarda la ilustración en `avatars/` (vale cualquier tamaño; se recorta en vertical, 3:4).
+2. Añádela a la lista de [`scripts/avatares.mjs`](scripts/avatares.mjs) con su id. Si el personaje no está centrado,
+   ajusta `x` (y `y` o `zoom` si hace falta).
+3. Añade el id a `AVATARS` en [`Backend/src/avatars.ts`](../Backend/src/avatars.ts) y su nombre a `AVATAR_NAMES` en
+   [`core/avatar.ts`](src/app/core/avatar.ts).
+4. Ejecuta `npm run avatares` (necesita ImageMagick: `brew install imagemagick`). Genera `public/avatars/<id>.webp`.
+
+Tiene que haber al menos tantos avatares como jugadores caben en una sala (20); un test del backend lo comprueba.
 
 ## Producción
 

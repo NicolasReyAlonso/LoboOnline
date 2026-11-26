@@ -8,7 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false",
     "start:lan": "ng serve --host 0.0.0.0",
-    "tarjetas": "node scripts/tarjetas.mjs"
+    "tarjetas": "node scripts/tarjetas.mjs",
+    "avatares": "node scripts/avatares.mjs"
   },
   "prettier": {
     "printWidth": 100,

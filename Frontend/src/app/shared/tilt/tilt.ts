@@ -25,10 +25,13 @@ export class Tilt {
   readonly appTilt = input<number | ''>(14);
 
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
-  private readonly reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  /** Se consulta la primera vez que se mueve el ratón encima. */
+  private reduced?: MediaQueryList;
 
   protected move(event: PointerEvent): void {
-    if (event.pointerType !== 'mouse' || this.reduced.matches) return;
+    if (event.pointerType !== 'mouse') return;
+    this.reduced ??= matchMedia('(prefers-reduced-motion: reduce)');
+    if (this.reduced.matches) return;
     const box = this.el.getBoundingClientRect();
     if (!box.width || !box.height) return;
     // De -0.5 a 0.5 respecto al centro.

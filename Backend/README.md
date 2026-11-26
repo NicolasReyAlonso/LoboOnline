@@ -146,6 +146,7 @@ Con socket.io-client ≥ 4.6 se puede usar `await socket.emitWithAck(evento, pay
 | `room:leave`    | —                                          | —                                | jugador           |
 | `room:kick`     | `{ playerId }`                             | —                                | anfitrión (lobby) |
 | `room:settings` | `SettingsPatch` (ver abajo)                | —                                | anfitrión (lobby) |
+| `room:avatar`   | `{ avatar }` (uno de `AVATARS`)            | —                                | jugador (fuera de partida) |
 | `game:start`    | —                                          | —                                | anfitrión         |
 | `game:action`   | `GameAction` (ver abajo)                   | —                                | jugador           |
 | `room:lobby`    | —                                          | —                                | anfitrión (al acabar) |
@@ -169,7 +170,7 @@ Con socket.io-client ≥ 4.6 se puede usar `await socket.emitWithAck(evento, pay
   code: 'K7QMZ',
   status: 'lobby' | 'playing' | 'ended',
   hostId, youId,
-  players: [{ id, name, connected, isHost }],
+  players: [{ id, name, avatar, connected, isHost }],   // avatar: al entrar, uno libre al azar; no se repiten
   settings: { minWolves, maxWolves, roles, revealRoleOnDeath, deadSeeEverything, durations: {...} },
   limits: { minPlayers: 4, maxPlayers: 20 },
   rolePreview: { composition: Composition | null, error: string | null } | null,
@@ -201,6 +202,7 @@ Envía solo lo que cambie:
   phase: 'night_seer',            // ver "Reglas" para la lista de fases
   phaseId: 7,                     // cambia en cada fase
   endsAt: 1763484000000,          // timestamp para la cuenta atrás
+  timerStartedAt: 1763483820000,  // desde cuándo corre endsAt (para pintar cuánto queda en proporción)
   night: 2, day: 1,
   composition: {                  // lo que todos saben del reparto
     powers: { seer: 1, witch: 1 },  // personajes con poderes
